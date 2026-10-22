@@ -4,11 +4,11 @@ A subscribable calendar feed (iCal/ICS) that bundles all the holidays that actua
 affect you in Spain: **national**, **regional/autonomic**, and **local/municipal**,
 for a given city.
 
-**MVP scope: Palma (Palma de Mallorca, Balearic Islands, Spain) only.** The
-long-term vision below (multi-city, multi-country) is the north star, but the
-first working version targets a single city end to end — one hardcoded feed
-combining Spain's national holidays, the Balearic Islands' regional holidays,
-and Palma's local holidays — before generalizing to a city picker.
+## Implemented cities
+
+| City | Region | Source of truth |
+|------|--------|------------------|
+| Palma de Mallorca | Balearic Islands | [CAIB labor calendar, Catalan edition](https://www.caib.es/sites/calendarilaboral/ca/aao_2026/) |
 
 ## Subscribe
 
@@ -31,26 +31,7 @@ fix that: pick your city once, subscribe to one calendar URL, and get every holi
 that applies to you — no manual merging of three different sources, no missing the
 one local "fiesta" day your city adds on top of the national/regional ones.
 
-## MVP goals (Palma only)
-
-- **One feed, three layers.** A single `.ics` file/URL for Palma combining:
-  - Spain's national public holidays
-  - The Balearic Islands' regional (autonomic) holidays
-  - Palma's local/municipal holidays (e.g. Sant Sebastià)
-- **Standard calendar subscription.** Output a standard `.ics` feed that any
-  calendar app (Google Calendar, Apple Calendar, Outlook, etc.) can subscribe to
-  and auto-refresh, not a one-time import.
-- **Correct and complete for the current + next year.** Since this is hardcoded
-  to one city, accuracy matters more than coverage — every holiday Palma
-  actually observes should be in there, with the right date (including any
-  "moved to Monday" substitutions).
-- **Transparent sourcing.** Each holiday traceable to an official or reliable
-  source, so it's easy to verify and to update year over year.
-- **Self-updating, no manual transcription.** The feed is built by scraping the
-  official source directly, so a new year's holidays flow in automatically
-  once published, instead of someone hand-copying dates into a file.
-
-## Non-goals (for the MVP)
+## Non-goals
 
 - No city picker, no other cities, no multi-country data model yet — Palma is
   hardcoded. Generalizing comes after the MVP proves useful.
@@ -59,11 +40,12 @@ one local "fiesta" day your city adds on top of the national/regional ones.
 - No UI beyond maybe a single static page with the subscription link and
   instructions — the deliverable is the feed itself.
 
-## MVP shape
+## Shape
 
-1. **Scraper** — fetches and parses the official CAIB labor calendar page for
-   the current and next year (when published), extracting both the general
-   Illes Balears holiday list and Palma's local holidays.
+1. **Scraper** — fetches and parses the official source for the current and
+   next year (when published), extracting both the general/regional holiday
+   list and the city's local holidays. For Palma, that's the CAIB labor
+   calendar (see "Implemented cities" above).
 2. **Feed generator** — turns the scraped holidays into a valid `.ics` file.
 3. **Automation** — a scheduled GitHub Action re-runs the scraper + generator
    monthly (and on demand), committing `output/palma.ics` back to the repo only
@@ -75,6 +57,15 @@ one local "fiesta" day your city adds on top of the national/regional ones.
 
 Implemented in Python, running inside Docker for local development; CI runs
 natively on the GitHub Actions runner (no Docker build needed there).
+
+**Years covered:** current + next year, when published by the source. No
+historical years, by design.
+
+**Hosting model:** a static `.ics` file, regenerated on the 1st of every
+month (and on manual trigger) by a GitHub Action, committed back to the
+repo, and served from its raw.githubusercontent.com URL — no server to
+run, no GitHub Pages setup needed, and holiday data changes rarely enough
+that monthly regeneration is plenty fresh.
 
 ## Project structure
 
@@ -111,11 +102,10 @@ parser doesn't disambiguate.
 The CAIB source doesn't separate national from regional holidays — its
 "general Illes Balears" list already folds Spain's national holidays (New
 Year, National Day, Christmas, etc.) in with the Balearics' own additions
-(e.g. Dia de les Illes Balears). The MVP tags that whole list `scope:
-regional` rather than guessing a split; Palma's own holidays are tagged
-`scope: local`.
+(e.g. Dia de les Illes Balears). It's tagged `scope: regional` as a whole
+rather than guessing a split; Palma's own holidays are tagged `scope: local`.
 
-## Future vision (post-MVP)
+## Future vision
 
 Once Palma works end to end, generalize to:
 - A data layer structured per country → region → city, instead of one hardcoded
@@ -123,19 +113,3 @@ Once Palma works end to end, generalize to:
 - A subscription endpoint per city (e.g.
   `https://.../calendar/es/balearic-islands/palma.ics`).
 - A simple picker UI to search/select a city and get its subscription URL.
-
-## Decisions
-
-- **Data source:** the Balearic Islands government's official labor calendar
-  site, Catalan edition — https://www.caib.es/sites/calendarilaboral/ca/aao_2026/
-  — covers national, regional, and local (per-municipality) holidays for the
-  Balearics, including Palma, with holiday names in Catalan (e.g. "Sant
-  Sebastià", "Cap d'Any"). Published year by year (new year's page appears
-  when available).
-- **Years covered:** current + next year, when published. No historical years
-  for the MVP.
-- **Hosting model:** static `.ics` file, regenerated on the 1st of every
-  month (and on manual trigger) by a GitHub Action, committed back to the
-  repo, and served from its raw.githubusercontent.com URL — no server to
-  run, no GitHub Pages setup needed, and holiday data changes rarely enough
-  that monthly regeneration is plenty fresh.
