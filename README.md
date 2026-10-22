@@ -10,6 +10,17 @@ first working version targets a single city end to end — one hardcoded feed
 combining Spain's national holidays, the Balearic Islands' regional holidays,
 and Palma's local holidays — before generalizing to a city picker.
 
+## Subscribe
+
+```
+https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.ics
+```
+
+Add this URL in your calendar app as a subscription (not a one-time import):
+Google Calendar → "Other calendars" → "From URL"; Apple Calendar → File →
+"New Calendar Subscription". The file is kept current by a scheduled GitHub
+Action (see below), so your calendar app will pick up changes automatically.
+
 ## Why
 
 Most holiday calendars only cover national public holidays. In countries with
@@ -54,10 +65,16 @@ one local "fiesta" day your city adds on top of the national/regional ones.
    the current and next year (when published), extracting both the general
    Illes Balears holiday list and Palma's local holidays.
 2. **Feed generator** — turns the scraped holidays into a valid `.ics` file.
-3. **Hosting** — the `.ics` file served at a stable, static URL that calendar
-   apps can subscribe to and poll for updates.
+3. **Automation** — a scheduled GitHub Action re-runs the scraper + generator
+   weekly (and on demand), committing `output/palma.ics` back to the repo only
+   when it actually changed. No manual execution needed, on your machine or
+   otherwise.
+4. **Hosting** — the committed `.ics` file is served straight from GitHub's
+   raw content URL (see "Subscribe" above), which is itself stable and
+   auto-updating since the Action keeps it current.
 
-Implemented in Python, running inside Docker (see below).
+Implemented in Python, running inside Docker for local development; CI runs
+natively on the GitHub Actions runner (no Docker build needed there).
 
 ## Project structure
 
@@ -75,7 +92,8 @@ spanish-local-holidays-calendar/
 │   ├── fixtures/aao_2026_sample.html   # trimmed, stable copy of the real page structure
 │   ├── test_scraper.py
 │   └── test_generate_ics.py
-└── output/palma.ics       # generated artifact (gitignored)
+├── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
+└── output/palma.ics       # generated artifact, committed (this is what's served)
 ```
 
 **Build/run:**
@@ -116,8 +134,8 @@ Once Palma works end to end, generalize to:
   when available).
 - **Years covered:** current + next year, when published. No historical years
   for the MVP.
-- **Hosting model:** static `.ics` file, regenerated periodically (e.g. a
-  scheduled GitHub Action) rather than a dynamic endpoint — simpler to host
-  (e.g. GitHub Pages), no server to run, and holiday data changes rarely
-  enough that periodic regeneration (weekly, or on a manual trigger) is
+- **Hosting model:** static `.ics` file, regenerated weekly (and on manual
+  trigger) by a GitHub Action, committed back to the repo, and served from
+  its raw.githubusercontent.com URL — no server to run, no GitHub Pages setup
+  needed, and holiday data changes rarely enough that weekly regeneration is
   plenty fresh.

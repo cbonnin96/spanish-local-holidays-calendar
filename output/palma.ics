@@ -1,0 +1,118 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Spanish Local Holidays Calendar//Palma//ES
+X-WR-CALNAME:Palma Holidays
+X-WR-TIMEZONE:Europe/Madrid
+BEGIN:VEVENT
+SUMMARY:Cap d'Any (regional)
+DTSTART;VALUE=DATE:20260101
+DTEND;VALUE=DATE:20260102
+UID:299aa1ac-9822-5562-b717-31de21a55221@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Epifania del Senyor (regional)
+DTSTART;VALUE=DATE:20260106
+DTEND;VALUE=DATE:20260107
+UID:2313b958-a54b-507e-81e2-165a87684ae5@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Sant Sebastià (local)
+DTSTART;VALUE=DATE:20260120
+DTEND;VALUE=DATE:20260121
+UID:2bb0a17e-c8df-54e1-a75f-894c7decab96@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:L'endemà del Dia de les Illes Balears (regional)
+DTSTART;VALUE=DATE:20260302
+DTEND;VALUE=DATE:20260303
+UID:0ca77b0b-adc5-53e6-9a18-6ac0c8aea400@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Dijous Sant (regional)
+DTSTART;VALUE=DATE:20260402
+DTEND;VALUE=DATE:20260403
+UID:cb39ec44-7bfe-544d-b693-ca9740711e8c@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Divendres Sant (regional)
+DTSTART;VALUE=DATE:20260403
+DTEND;VALUE=DATE:20260404
+UID:52ea7fe3-6fb2-537d-b810-b0b0cdcec5b6@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Dilluns de Pasqua (regional)
+DTSTART;VALUE=DATE:20260406
+DTEND;VALUE=DATE:20260407
+UID:9e1ccf39-09ab-567c-8c28-22be9cf9cd0d@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Dia del Treball (regional)
+DTSTART;VALUE=DATE:20260501
+DTEND;VALUE=DATE:20260502
+UID:7377f939-1d93-594c-9229-9c79e2d4482f@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Sant Joan (local)
+DTSTART;VALUE=DATE:20260624
+DTEND;VALUE=DATE:20260625
+UID:633c1fd1-8e71-53a3-a922-8aa221f4c139@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Assumpció de la Mare de Déu (regional)
+DTSTART;VALUE=DATE:20260815
+DTEND;VALUE=DATE:20260816
+UID:23d15d6d-7ed1-5731-85a8-fb09e51ba456@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Festa Nacional (regional)
+DTSTART;VALUE=DATE:20261012
+DTEND;VALUE=DATE:20261013
+UID:94e0bc5c-9456-5885-8e02-7822a56af1ee@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Immaculada Concepció (regional)
+DTSTART;VALUE=DATE:20261208
+DTEND;VALUE=DATE:20261209
+UID:7a025a33-4946-5b42-9315-a3cf9078397c@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Dia de Nadal (regional)
+DTSTART;VALUE=DATE:20261225
+DTEND;VALUE=DATE:20261226
+UID:52a7452a-8baa-5ac1-be7b-569ef3062095@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Segona festa de Nadal (regional)
+DTSTART;VALUE=DATE:20261226
+DTEND;VALUE=DATE:20261227
+UID:cfced4bd-1af6-5163-87c9-8873cc746214@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/ca/aao_2026
+ /
+END:VEVENT
+END:VCALENDAR
