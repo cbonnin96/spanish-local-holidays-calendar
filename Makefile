@@ -10,7 +10,7 @@ generate: build
 	docker run --rm -v $(CURDIR)/output:/app/output $(IMAGE)
 
 test: build
-	docker run --rm -e PYTHONPATH=/app/src $(IMAGE) python -m pytest
+	docker run --rm $(IMAGE) python -m pytest
 
 shell: build
 	docker run --rm -it -v $(CURDIR)/output:/app/output $(IMAGE) bash

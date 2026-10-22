@@ -9,7 +9,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "src/**"
+      - "spanish_local_holidays_calendar/**"
       - "requirements.txt"
       - ".github/workflows/update-calendar.yml"
 
@@ -32,10 +32,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run tests
-        run: PYTHONPATH=src python -m pytest
+        run: python -m pytest
 
       - name: Generate calendar
-        run: PYTHONPATH=src python -m spanish_local_holidays_calendar
+        run: python -m spanish_local_holidays_calendar
 
       - name: Commit updated calendar if changed
         run: |

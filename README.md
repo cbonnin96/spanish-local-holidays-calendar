@@ -83,7 +83,7 @@ spanish-local-holidays-calendar/
 ├── Dockerfile
 ├── Makefile
 ├── requirements.txt
-├── src/spanish_local_holidays_calendar/
+├── spanish_local_holidays_calendar/
 │   ├── models.py          # Holiday dataclass (date, name, scope, source_url)
 │   ├── scraper.py         # fetches + parses the CAIB page into Holiday objects
 │   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
