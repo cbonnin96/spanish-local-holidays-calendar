@@ -1,8 +1,8 @@
-# Local Holidays Calendar
+# Spanish Local Holidays Calendar
 
 A subscribable calendar feed (iCal/ICS) that bundles all the holidays that actually
-affect you: **national**, **regional/autonomic**, and **local/municipal**, for a
-given city.
+affect you in Spain: **national**, **regional/autonomic**, and **local/municipal**,
+for a given city.
 
 **MVP scope: Palma (Palma de Mallorca, Balearic Islands, Spain) only.** The
 long-term vision below (multi-city, multi-country) is the north star, but the
@@ -35,9 +35,9 @@ one local "fiesta" day your city adds on top of the national/regional ones.
   "moved to Monday" substitutions).
 - **Transparent sourcing.** Each holiday traceable to an official or reliable
   source, so it's easy to verify and to update year over year.
-- **Simple enough to ship fast.** Data can start as a hardcoded list (e.g. a
-  JSON/YAML file) rather than a database — the point of the MVP is a working,
-  subscribable feed, not a scalable data model yet.
+- **Self-updating, no manual transcription.** The feed is built by scraping the
+  official source directly, so a new year's holidays flow in automatically
+  once published, instead of someone hand-copying dates into a file.
 
 ## Non-goals (for the MVP)
 
@@ -50,13 +50,52 @@ one local "fiesta" day your city adds on top of the national/regional ones.
 
 ## MVP shape
 
-1. **Data file** — a small structured file (JSON/YAML) listing Palma's holidays
-   for the current and next year: date, name, scope (national/regional/local),
-   source.
-2. **Feed generator** — a script that reads the data file and produces a valid
-   `.ics` file.
+1. **Scraper** — fetches and parses the official CAIB labor calendar page for
+   the current and next year (when published), extracting both the general
+   Illes Balears holiday list and Palma's local holidays.
+2. **Feed generator** — turns the scraped holidays into a valid `.ics` file.
 3. **Hosting** — the `.ics` file served at a stable, static URL that calendar
    apps can subscribe to and poll for updates.
+
+Implemented in Python, running inside Docker (see below).
+
+## Project structure
+
+```
+spanish-local-holidays-calendar/
+├── Dockerfile
+├── Makefile
+├── requirements.txt
+├── src/spanish_local_holidays_calendar/
+│   ├── models.py          # Holiday dataclass (date, name, scope, source_url)
+│   ├── scraper.py         # fetches + parses the CAIB page into Holiday objects
+│   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
+│   └── __main__.py        # CLI entrypoint: scrape current+next year, write output/palma.ics
+├── tests/
+│   ├── fixtures/aao_2026_sample.html   # trimmed, stable copy of the real page structure
+│   ├── test_scraper.py
+│   └── test_generate_ics.py
+└── output/palma.ics       # generated artifact (gitignored)
+```
+
+**Build/run:**
+```
+make build      # docker build -t spanish-local-holidays-calendar .
+make generate   # scrape live CAIB page, write output/palma.ics
+make test       # run the test suite inside the container
+```
+
+The scraper is scoped to municipalities listed as a single entry (no
+sub-localities) — this covers Palma, but not municipalities split into
+several localities (e.g. Andratx / Port d'Andratx / s'Arracó), which the
+parser doesn't disambiguate.
+
+The CAIB source doesn't separate national from regional holidays — its
+"general Illes Balears" list already folds Spain's national holidays (New
+Year, National Day, Christmas, etc.) in with the Balearics' own additions
+(e.g. Dia de les Illes Balears). The MVP tags that whole list `scope:
+regional` rather than guessing a split; Palma's own holidays are tagged
+`scope: local`.
 
 ## Future vision (post-MVP)
 
@@ -70,10 +109,11 @@ Once Palma works end to end, generalize to:
 ## Decisions
 
 - **Data source:** the Balearic Islands government's official labor calendar
-  site, https://www.caib.es/sites/calendarilaboral/es/aao_2026/ — covers
-  national, regional, and local (per-municipality) holidays for the Balearics,
-  including Palma. Published year by year (new year's page appears when
-  available).
+  site, Catalan edition — https://www.caib.es/sites/calendarilaboral/ca/aao_2026/
+  — covers national, regional, and local (per-municipality) holidays for the
+  Balearics, including Palma, with holiday names in Catalan (e.g. "Sant
+  Sebastià", "Cap d'Any"). Published year by year (new year's page appears
+  when available).
 - **Years covered:** current + next year, when published. No historical years
   for the MVP.
 - **Hosting model:** static `.ics` file, regenerated periodically (e.g. a
