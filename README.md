@@ -66,7 +66,7 @@ one local "fiesta" day your city adds on top of the national/regional ones.
    Illes Balears holiday list and Palma's local holidays.
 2. **Feed generator** — turns the scraped holidays into a valid `.ics` file.
 3. **Automation** — a scheduled GitHub Action re-runs the scraper + generator
-   weekly (and on demand), committing `output/palma.ics` back to the repo only
+   monthly (and on demand), committing `output/palma.ics` back to the repo only
    when it actually changed. No manual execution needed, on your machine or
    otherwise.
 4. **Hosting** — the committed `.ics` file is served straight from GitHub's
@@ -134,8 +134,8 @@ Once Palma works end to end, generalize to:
   when available).
 - **Years covered:** current + next year, when published. No historical years
   for the MVP.
-- **Hosting model:** static `.ics` file, regenerated weekly (and on manual
-  trigger) by a GitHub Action, committed back to the repo, and served from
-  its raw.githubusercontent.com URL — no server to run, no GitHub Pages setup
-  needed, and holiday data changes rarely enough that weekly regeneration is
-  plenty fresh.
+- **Hosting model:** static `.ics` file, regenerated on the 1st of every
+  month (and on manual trigger) by a GitHub Action, committed back to the
+  repo, and served from its raw.githubusercontent.com URL — no server to
+  run, no GitHub Pages setup needed, and holiday data changes rarely enough
+  that monthly regeneration is plenty fresh.
