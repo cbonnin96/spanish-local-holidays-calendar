@@ -8,7 +8,7 @@ for a given city.
 
 | City | Region | Source of truth |
 |------|--------|------------------|
-| Palma de Mallorca | Balearic Islands | [CAIB labor calendar, Catalan edition](https://www.caib.es/sites/calendarilaboral/ca/aao_2026/) |
+| Palma | Balearic Islands | [CAIB labor calendar, Catalan edition](https://www.caib.es/sites/calendarilaboral/ca/aao_2026/) |
 
 ## Subscribe
 
