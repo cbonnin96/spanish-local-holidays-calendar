@@ -110,12 +110,3 @@ The CAIB source doesn't separate national from regional holidays — its
 Year, National Day, Christmas, etc.) in with the Balearics' own additions
 (e.g. Dia de les Illes Balears). It's tagged `scope: regional` as a whole
 rather than guessing a split; Palma's own holidays are tagged `scope: local`.
-
-## Future vision
-
-Once Palma works end to end, generalize to:
-- A data layer structured per country → region → city, instead of one hardcoded
-  file.
-- A subscription endpoint per city (e.g.
-  `https://.../calendar/es/balearic-islands/palma.ics`).
-- A simple picker UI to search/select a city and get its subscription URL.
