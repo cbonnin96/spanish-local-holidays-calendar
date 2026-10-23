@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import importlib
+import json
+from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 from .models import Holiday
+
+REGION_SOURCES_FILE = Path(__file__).parent / "region_sources.json"
 
 
 @runtime_checkable
@@ -27,3 +32,18 @@ class RegionSource(Protocol):
         """Return all holidays for a municipality/year/locale, or None if
         that year's calendar hasn't been published yet by this source."""
         ...
+
+
+def load_region_sources(path: Path = REGION_SOURCES_FILE) -> dict[str, RegionSource]:
+    """Load the region -> source mapping. Each entry is a dotted module path
+    (not inline code -- JSON can't hold that), imported here and checked
+    against RegionSource so a misconfigured entry fails loudly at load time
+    rather than with a confusing AttributeError deep in the pipeline."""
+    module_paths = json.loads(path.read_text(encoding="utf-8"))
+    sources: dict[str, RegionSource] = {}
+    for region, module_path in module_paths.items():
+        module = importlib.import_module(module_path)
+        if not isinstance(module, RegionSource):
+            raise TypeError(f"{module_path!r} (region {region!r} in {path}) does not satisfy RegionSource")
+        sources[region] = module
+    return sources

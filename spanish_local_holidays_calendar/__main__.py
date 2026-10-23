@@ -4,17 +4,10 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import catalonia_source, scraper
 from .cities import CityConfig, load_cities
 from .generate_ics import build_calendar
 from .locales import LocaleConfig, load_locales
-from .region_source import RegionSource
-
-# Which RegionSource handles a given city, keyed by CityConfig.region.
-REGION_SOURCES: dict[str, RegionSource] = {
-    "Illes Balears": scraper,
-    "Catalunya": catalonia_source,
-}
+from .region_source import RegionSource, load_region_sources
 
 OUTPUT_DIR = Path("output")
 
@@ -54,10 +47,11 @@ def generate_for_city_locale(
 def main() -> int:
     cities = load_cities()
     locales = load_locales()
+    region_sources = load_region_sources()
 
     city_sources: list[RegionSource] = []
     for city in cities:
-        source = REGION_SOURCES.get(city.region)
+        source = region_sources.get(city.region)
         if source is None:
             print(f"No source registered for region {city.region!r} (city {city.municipality}).", file=sys.stderr)
             return 1

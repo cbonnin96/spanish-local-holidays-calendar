@@ -66,7 +66,7 @@ def test_generate_for_city_locale_uses_correct_localized_calendar_name(tmp_path,
 def test_main_returns_nonzero_when_no_city_has_data(tmp_path, monkeypatch):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA])
-    monkeypatch.setattr(main_module, "REGION_SOURCES", {"Illes Balears": FakeSource({})})
+    monkeypatch.setattr(main_module, "load_region_sources", lambda: {"Illes Balears": FakeSource({})})
 
     assert main_module.main() == 1
     assert list(tmp_path.iterdir()) == []
@@ -77,8 +77,8 @@ def test_main_succeeds_if_at_least_one_city_locale_has_data(tmp_path, monkeypatc
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA])
     monkeypatch.setattr(
         main_module,
-        "REGION_SOURCES",
-        {"Illes Balears": FakeSource({("PALMA", "ca"): FAKE_HOLIDAYS[("PALMA", "ca")]})},
+        "load_region_sources",
+        lambda: {"Illes Balears": FakeSource({("PALMA", "ca"): FAKE_HOLIDAYS[("PALMA", "ca")]})},
     )
 
     assert main_module.main() == 0
@@ -92,7 +92,7 @@ def test_adding_a_registry_entry_produces_a_new_output_file_without_code_changes
     exercised here by handing main() a registry with an extra, unseen city."""
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA, MURO])
-    monkeypatch.setattr(main_module, "REGION_SOURCES", {"Illes Balears": FakeSource(FAKE_HOLIDAYS)})
+    monkeypatch.setattr(main_module, "load_region_sources", lambda: {"Illes Balears": FakeSource(FAKE_HOLIDAYS)})
 
     assert main_module.main() == 0
 
@@ -110,8 +110,8 @@ def test_main_dispatches_different_regions_to_their_own_source(tmp_path, monkeyp
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA, BARCELONA])
     monkeypatch.setattr(
         main_module,
-        "REGION_SOURCES",
-        {
+        "load_region_sources",
+        lambda: {
             "Illes Balears": FakeSource(FAKE_HOLIDAYS),
             "Catalunya": FakeSource(FAKE_HOLIDAYS),
         },
@@ -128,7 +128,7 @@ def test_main_dispatches_different_regions_to_their_own_source(tmp_path, monkeyp
 def test_main_fails_loudly_if_a_city_region_has_no_registered_source(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "load_cities", lambda: [BARCELONA])
-    monkeypatch.setattr(main_module, "REGION_SOURCES", {"Illes Balears": FakeSource(FAKE_HOLIDAYS)})
+    monkeypatch.setattr(main_module, "load_region_sources", lambda: {"Illes Balears": FakeSource(FAKE_HOLIDAYS)})
 
     assert main_module.main() == 1
     assert list(tmp_path.iterdir()) == []
@@ -141,7 +141,7 @@ def test_main_fails_loudly_if_a_city_region_has_no_registered_source(tmp_path, m
 def test_main_fails_loudly_if_locales_registry_outpaces_a_sources_support(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA])
-    monkeypatch.setattr(main_module, "REGION_SOURCES", {"Illes Balears": FakeSource(FAKE_HOLIDAYS)})
+    monkeypatch.setattr(main_module, "load_region_sources", lambda: {"Illes Balears": FakeSource(FAKE_HOLIDAYS)})
     monkeypatch.setattr(
         main_module,
         "load_locales",

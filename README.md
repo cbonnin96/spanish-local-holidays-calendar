@@ -80,10 +80,13 @@ module, not a config tweak. `region_source.py` defines the `RegionSource`
 protocol any such module must satisfy — a `SUPPORTED_LOCALES` set and a
 `fetch_holidays(year, municipality, locale)` function returning holidays
 or `None` if that year isn't published yet — and doesn't need to be a
-class, just a module shaped the same way. `__main__.py`'s `REGION_SOURCES`
-dict maps each `CityConfig.region` to its module; adding a city from an
-already-registered region is a `cities.json` change, adding a city from a
-new region means writing that region's own source module.
+class, just a module shaped the same way. `region_sources.json` maps each
+region name to its source module's dotted import path — `load_region_sources()`
+imports each one and checks it against `RegionSource`, so a misconfigured
+entry fails loudly at startup instead of with a confusing error deep in the
+pipeline. Adding a city from an already-registered region is a `cities.json`
+change; adding a city from a new region means writing that region's own
+source module and adding one line to `region_sources.json`.
 
 Catalonia's source (`catalonia_source.py`) is a different shape entirely
 from the Balearics' HTML scrape — it's the Generalitat's official open data
@@ -108,7 +111,8 @@ spanish-local-holidays-calendar/
 │   ├── cities.json        # data: which municipalities to generate calendars for
 │   ├── locales.py         # LocaleConfig + load_locales() -- per-locale display strings
 │   ├── locales.json       # data: supported locales and their calendar name templates
-│   ├── region_source.py   # RegionSource protocol -- the extension point for a new region
+│   ├── region_source.py   # RegionSource protocol + load_region_sources()
+│   ├── region_sources.json # data: region name -> source module's dotted import path
 │   ├── scraper.py             # Balearics/CAIB source: HTML scrape
 │   ├── catalonia_source.py    # Catalonia source: Generalitat open data API
 │   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
