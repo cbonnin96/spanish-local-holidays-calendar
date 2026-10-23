@@ -6,17 +6,20 @@ for a given city.
 
 ## Implemented cities
 
-| City | Region | Source of truth |
-|------|--------|------------------|
-| Palma | Balearic Islands | [CAIB labor calendar, Catalan edition](https://www.caib.es/sites/calendarilaboral/ca/aao_2026/) |
+| City | Region | Languages | Source of truth |
+|------|--------|-----------|------------------|
+| Palma | Balearic Islands | [ES](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.es.ics) · [CA](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.ca.ics) | [CAIB labor calendar](https://www.caib.es/sites/calendarilaboral/ca/aao_2026/) |
 
 ## Subscribe
 
-```
-https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.ics
-```
+Each city is available in both Spanish and Catalan — pick the one you want:
 
-Add this URL in your calendar app as a subscription (not a one-time import):
+| Language | URL |
+|----------|-----|
+| Español (ES) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.es.ics` |
+| Català (CA) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.ca.ics` |
+
+Add the URL in your calendar app as a subscription (not a one-time import):
 Google Calendar → "Other calendars" → "From URL"; Apple Calendar → File →
 "New Calendar Subscription". The file is kept current by a scheduled GitHub
 Action (see below), so your calendar app will pick up changes automatically.
@@ -48,10 +51,10 @@ one local "fiesta" day your city adds on top of the national/regional ones.
    calendar (see "Implemented cities" above).
 2. **Feed generator** — turns the scraped holidays into a valid `.ics` file.
 3. **Automation** — a scheduled GitHub Action re-runs the scraper + generator
-   monthly (and on demand), committing `output/palma.ics` back to the repo only
-   when it actually changed. No manual execution needed, on your machine or
-   otherwise.
-4. **Hosting** — the committed `.ics` file is served straight from GitHub's
+   monthly (and on demand), committing the generated `.ics` files back to the
+   repo only when they actually changed. No manual execution needed, on your
+   machine or otherwise.
+4. **Hosting** — the committed `.ics` files are served straight from GitHub's
    raw content URL (see "Subscribe" above), which is itself stable and
    auto-updating since the Action keeps it current.
 
@@ -61,9 +64,9 @@ natively on the GitHub Actions runner (no Docker build needed there).
 **Years covered:** current + next year, when published by the source. No
 historical years, by design.
 
-**Hosting model:** a static `.ics` file, regenerated on the 1st of every
+**Hosting model:** static `.ics` files, regenerated on the 1st of every
 month (and on manual trigger) by a GitHub Action, committed back to the
-repo, and served from its raw.githubusercontent.com URL — no server to
+repo, and served from their raw.githubusercontent.com URLs — no server to
 run, no GitHub Pages setup needed, and holiday data changes rarely enough
 that monthly regeneration is plenty fresh.
 
@@ -78,19 +81,22 @@ spanish-local-holidays-calendar/
 │   ├── models.py          # Holiday dataclass (date, name, scope, source_url)
 │   ├── scraper.py         # fetches + parses the CAIB page into Holiday objects
 │   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
-│   └── __main__.py        # CLI entrypoint: scrape current+next year, write output/palma.ics
+│   └── __main__.py        # CLI entrypoint: scrape current+next year, write per-language .ics files
 ├── tests/
-│   ├── fixtures/aao_2026_sample.html   # trimmed, stable copy of the real page structure
+│   ├── fixtures/aao_2026_sample.html      # trimmed, stable copy of the real CA page structure
+│   ├── fixtures/aao_2026_sample_es.html   # same, for the ES page
 │   ├── test_scraper.py
-│   └── test_generate_ics.py
+│   ├── test_generate_ics.py
+│   └── test_main.py
 ├── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
-└── output/palma.ics       # generated artifact, committed (this is what's served)
+├── output/palma.es.ics    # generated artifact, committed (this is what's served)
+└── output/palma.ca.ics    # generated artifact, committed (this is what's served)
 ```
 
 **Build/run:**
 ```
 make build      # docker build -t spanish-local-holidays-calendar .
-make generate   # scrape live CAIB page, write output/palma.ics
+make generate   # scrape live CAIB page, write output/palma.es.ics and output/palma.ca.ics
 make test       # run the test suite inside the container
 ```
 
