@@ -1,7 +1,12 @@
 from datetime import date
 from pathlib import Path
 
-from spanish_local_holidays_calendar.scraper import fetch_page, parse_local_holidays, parse_regional_holidays
+from spanish_local_holidays_calendar.scraper import (
+    SUPPORTED_LOCALES,
+    fetch_page,
+    parse_local_holidays,
+    parse_regional_holidays,
+)
 
 FIXTURE = Path(__file__).parent / "fixtures" / "aao_2026_sample.html"
 FIXTURE_ES = Path(__file__).parent / "fixtures" / "aao_2026_sample_es.html"
@@ -85,3 +90,7 @@ def test_fetch_page_builds_locale_specific_url(monkeypatch):
         "https://www.caib.es/sites/calendarilaboral/es/aao_2026/",
         "https://www.caib.es/sites/calendarilaboral/ca/aao_2026/",
     ]
+
+
+def test_supported_locales_matches_known_vocabularies():
+    assert SUPPORTED_LOCALES == {"es", "ca"}

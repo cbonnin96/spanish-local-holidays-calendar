@@ -2,7 +2,7 @@ from datetime import date
 
 import spanish_local_holidays_calendar.__main__ as main_module
 from spanish_local_holidays_calendar.cities import CityConfig
-from spanish_local_holidays_calendar.locales import load_locales
+from spanish_local_holidays_calendar.locales import LocaleConfig, load_locales
 from spanish_local_holidays_calendar.models import Holiday
 
 LOCALES = load_locales()
@@ -98,3 +98,21 @@ def test_adding_a_registry_entry_produces_a_new_output_file_without_code_changes
 
     assert b"San Antonio" in (tmp_path / "muro.es.ics").read_bytes()
     assert b"Sant Antoni" in (tmp_path / "muro.ca.ics").read_bytes()
+
+
+def test_main_fails_loudly_if_locales_registry_outpaces_scraper_support(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
+    monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA])
+    monkeypatch.setattr(
+        main_module,
+        "load_locales",
+        lambda: {**LOCALES, "en": LocaleConfig(calendar_name_template="{city} Holidays")},
+    )
+    monkeypatch.setattr(main_module, "fetch_holidays", fake_fetch_holidays_for(FAKE_HOLIDAYS))
+
+    assert main_module.main() == 1
+    assert list(tmp_path.iterdir()) == []
+
+    err = capsys.readouterr().err
+    assert "en" in err
+    assert "doesn't support" in err

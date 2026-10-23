@@ -10,6 +10,11 @@ from .models import Holiday
 
 BASE_URL = "https://www.caib.es/sites/calendarilaboral/{locale}/aao_{year}/"
 
+# Locale codes this scraper actually knows how to fetch and parse: CAIB
+# publishes a page at this URL pattern for each, and MONTHS below covers
+# both vocabularies. Update together with MONTHS when adding a new locale.
+SUPPORTED_LOCALES = frozenset({"es", "ca"})
+
 # Catalan and Spanish month names, as used by the CAIB page in each locale.
 # Catalan "de" elides to "d'" before a vowel-initial month (e.g. "2 d'abril");
 # normalized away before matching. Spanish has no such elision. Where a word

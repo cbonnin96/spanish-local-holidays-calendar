@@ -7,7 +7,7 @@ from pathlib import Path
 from .cities import CityConfig, load_cities
 from .generate_ics import build_calendar
 from .locales import LocaleConfig, load_locales
-from .scraper import fetch_holidays
+from .scraper import SUPPORTED_LOCALES, fetch_holidays
 
 OUTPUT_DIR = Path("output")
 
@@ -45,6 +45,16 @@ def generate_for_city_locale(city: CityConfig, locale: str, locales: dict[str, L
 def main() -> int:
     cities = load_cities()
     locales = load_locales()
+
+    unsupported = set(locales) - SUPPORTED_LOCALES
+    if unsupported:
+        print(
+            f"locales.json declares locale(s) the scraper doesn't support yet: "
+            f"{sorted(unsupported)}. Scraper currently supports: {sorted(SUPPORTED_LOCALES)}.",
+            file=sys.stderr,
+        )
+        return 1
+
     total_holidays = sum(
         generate_for_city_locale(city, locale, locales) for city in cities for locale in locales
     )
