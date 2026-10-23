@@ -1,7 +1,7 @@
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Spanish Local Holidays Calendar//Palma//ES
-X-WR-CALNAME:Palma Holidays
+X-WR-CALNAME:Festes de Palma
 X-WR-TIMEZONE:Europe/Madrid
 BEGIN:VEVENT
 SUMMARY:Cap d'Any (regional)
