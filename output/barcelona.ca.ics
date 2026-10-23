@@ -1,0 +1,118 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Spanish Local Holidays Calendar//Palma//ES
+X-WR-CALNAME:Festius de Barcelona
+X-WR-TIMEZONE:Europe/Madrid
+BEGIN:VEVENT
+SUMMARY:Cap d'Any (regional)
+DTSTART;VALUE=DATE:20260101
+DTEND;VALUE=DATE:20260102
+UID:299aa1ac-9822-5562-b717-31de21a55221@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Reis (regional)
+DTSTART;VALUE=DATE:20260106
+DTEND;VALUE=DATE:20260107
+UID:27557642-e616-5f13-ba41-a286193f4ec7@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Divendres Sant (regional)
+DTSTART;VALUE=DATE:20260403
+DTEND;VALUE=DATE:20260404
+UID:52ea7fe3-6fb2-537d-b810-b0b0cdcec5b6@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Dilluns de Pasqua (regional)
+DTSTART;VALUE=DATE:20260406
+DTEND;VALUE=DATE:20260407
+UID:9e1ccf39-09ab-567c-8c28-22be9cf9cd0d@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Festa del Treball (regional)
+DTSTART;VALUE=DATE:20260501
+DTEND;VALUE=DATE:20260502
+UID:f67b7c24-4892-5676-b740-ee51a71097a0@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Festa local (local)
+DTSTART;VALUE=DATE:20260525
+DTEND;VALUE=DATE:20260526
+UID:af4d3999-dd78-5c26-b3bc-f48ba582d7c2@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/b4
+ eh-r8up.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Sant Joan (regional)
+DTSTART;VALUE=DATE:20260624
+DTEND;VALUE=DATE:20260625
+UID:6adbf588-bfe4-5810-a686-67d37a5a4901@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:L'Assumpció (regional)
+DTSTART;VALUE=DATE:20260815
+DTEND;VALUE=DATE:20260816
+UID:22babed9-0485-5725-ac8e-878552d8d8a2@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Diada Nacional de Catalunya (regional)
+DTSTART;VALUE=DATE:20260911
+DTEND;VALUE=DATE:20260912
+UID:b1322a9f-9549-5432-95de-7119ed026171@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Festa local (local)
+DTSTART;VALUE=DATE:20260924
+DTEND;VALUE=DATE:20260925
+UID:5b714bfd-297d-59dc-83f1-286acedd4cb4@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/b4
+ eh-r8up.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Festa Nacional d'Espanya (regional)
+DTSTART;VALUE=DATE:20261012
+DTEND;VALUE=DATE:20261013
+UID:8ad31bbe-1a27-54e6-be48-3754f615ae9d@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:La Immaculada (regional)
+DTSTART;VALUE=DATE:20261208
+DTEND;VALUE=DATE:20261209
+UID:4bf87cba-63cb-5c8a-aea2-9e6c0498a97e@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Nadal (regional)
+DTSTART;VALUE=DATE:20261225
+DTEND;VALUE=DATE:20261226
+UID:efa18440-a755-5351-8424-89764774f0c1@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Sant Esteve (regional)
+DTSTART;VALUE=DATE:20261226
+DTEND;VALUE=DATE:20261227
+UID:7eabb5b4-0464-580c-a5aa-fcc3570f123a@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://analisi.transparenciacatalunya.cat/resource/yf
+ 2b-mjr6.json
+END:VEVENT
+END:VCALENDAR
