@@ -8,11 +8,15 @@ from bs4 import BeautifulSoup
 
 from .models import Holiday
 
-BASE_URL = "https://www.caib.es/sites/calendarilaboral/ca/aao_{year}/"
+BASE_URL = "https://www.caib.es/sites/calendarilaboral/{locale}/aao_{year}/"
 
-# Catalan month names, as used by the CAIB page. "de" elides to "d'" before a
-# vowel-initial month (e.g. "2 d'abril"); normalized away before matching.
+# Catalan and Spanish month names, as used by the CAIB page in each locale.
+# Catalan "de" elides to "d'" before a vowel-initial month (e.g. "2 d'abril");
+# normalized away before matching. Spanish has no such elision. Where a word
+# is spelled identically in both languages (e.g. "abril", "octubre"), it maps
+# to the same month, so one shared dict covers both locales.
 MONTHS = {
+    # Catalan
     "gener": 1,
     "febrer": 2,
     "marc": 3,
@@ -26,6 +30,17 @@ MONTHS = {
     "octubre": 10,
     "novembre": 11,
     "desembre": 12,
+    # Spanish
+    "enero": 1,
+    "febrero": 2,
+    "marzo": 3,
+    "mayo": 5,
+    "junio": 6,
+    "julio": 7,
+    "agosto": 8,
+    "septiembre": 9,
+    "noviembre": 11,
+    "diciembre": 12,
 }
 
 DATE_RE = re.compile(r"(\d{1,2})\s+de\s+(\w+)", re.IGNORECASE)
@@ -42,9 +57,10 @@ def _parse_date(text: str, year: int) -> date | None:
     return date(year, month, int(match.group(1)))
 
 
-def fetch_page(year: int) -> str | None:
-    """Return the raw HTML for a given year's calendar, or None if not published yet."""
-    url = BASE_URL.format(year=year)
+def fetch_page(year: int, locale: str = "ca") -> str | None:
+    """Return the raw HTML for a given year's calendar and locale, or None if
+    not published yet. `locale` is "ca" (Catalan) or "es" (Spanish)."""
+    url = BASE_URL.format(locale=locale, year=year)
     response = requests.get(url, timeout=30)
     if response.status_code == 404:
         return None
@@ -53,12 +69,14 @@ def fetch_page(year: int) -> str | None:
 
 
 def parse_regional_holidays(html: str, year: int, source_url: str) -> list[Holiday]:
-    """Parse the "Festes d'àmbit general de les Illes Balears" table.
+    """Parse the "general Illes Balears" holidays table (either locale: CA
+    "Festes d'àmbit general..." or ES "Fiestas de ámbito general...").
 
     This list is published by CAIB as a single table that already folds in
-    Spain's national holidays (e.g. Festa Nacional, Nadal) alongside the
-    Balearics' own regional additions (e.g. Dia de les Illes Balears) -- the
-    source does not separate the two, so both are tagged scope="regional".
+    Spain's national holidays (e.g. Festa Nacional/Fiesta Nacional, Nadal/
+    Navidad) alongside the Balearics' own regional additions (e.g. Dia de
+    les Illes Balears) -- the source does not separate the two, so both are
+    tagged scope="regional".
     """
     soup = BeautifulSoup(html, "lxml")
     heading = soup.find(string=re.compile(r"mbit\w*\s+general", re.IGNORECASE))
@@ -108,15 +126,16 @@ def parse_local_holidays(html: str, year: int, municipality: str, source_url: st
     return holidays
 
 
-def fetch_holidays(year: int, municipality: str = "PALMA") -> list[Holiday] | None:
-    """Fetch and parse all holidays (regional + local) for a municipality and year.
+def fetch_holidays(year: int, municipality: str = "PALMA", locale: str = "ca") -> list[Holiday] | None:
+    """Fetch and parse all holidays (regional + local) for a municipality,
+    year, and locale ("ca" or "es").
 
     Returns None if the calendar for that year hasn't been published yet.
     """
-    html = fetch_page(year)
+    html = fetch_page(year, locale)
     if html is None:
         return None
-    source_url = BASE_URL.format(year=year)
+    source_url = BASE_URL.format(locale=locale, year=year)
     holidays = parse_regional_holidays(html, year, source_url)
     holidays += parse_local_holidays(html, year, municipality, source_url)
     return sorted(holidays, key=lambda holiday: holiday.date)
