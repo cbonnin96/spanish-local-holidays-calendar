@@ -1,0 +1,30 @@
+[
+  {
+    "city": "Barcelona",
+    "region": "Catalunya",
+    "locale": "ca",
+    "path": "catalunya/barcelona.ca.ics",
+    "url": "https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.ca.ics"
+  },
+  {
+    "city": "Barcelona",
+    "region": "Catalunya",
+    "locale": "es",
+    "path": "catalunya/barcelona.es.ics",
+    "url": "https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.es.ics"
+  },
+  {
+    "city": "PALMA",
+    "region": "Illes Balears",
+    "locale": "ca",
+    "path": "illes-balears/palma.ca.ics",
+    "url": "https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.ca.ics"
+  },
+  {
+    "city": "PALMA",
+    "region": "Illes Balears",
+    "locale": "es",
+    "path": "illes-balears/palma.es.ics",
+    "url": "https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.es.ics"
+  }
+]
