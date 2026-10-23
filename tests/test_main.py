@@ -42,14 +42,26 @@ def test_generate_for_city_locale_writes_one_file_per_language(tmp_path, monkeyp
     assert es_count == 1
     assert ca_count == 1
 
-    es_file = tmp_path / "palma.es.ics"
-    ca_file = tmp_path / "palma.ca.ics"
+    es_file = tmp_path / "illes-balears/palma.es.ics"
+    ca_file = tmp_path / "illes-balears/palma.ca.ics"
     assert es_file.exists()
     assert ca_file.exists()
 
     assert b"San Sebasti" in es_file.read_bytes()
     assert b"Sant Sebasti" in ca_file.read_bytes()
     assert es_file.read_bytes() != ca_file.read_bytes()
+
+
+def test_generate_for_city_locale_writes_to_output_region_slug_city_slug_lang_ics(tmp_path, monkeypatch):
+    """Acceptance criterion for #13: output path is output/<region-slug>/
+    <city-slug>.<lang>.ics, not a flat output/<city>.<lang>.ics."""
+    monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
+    source = FakeSource(FAKE_HOLIDAYS)
+
+    main_module.generate_for_city_locale(BARCELONA, "ca", LOCALES, source)
+
+    assert (tmp_path / "catalunya" / "barcelona.ca.ics").exists()
+    assert not (tmp_path / "barcelona.ca.ics").exists()
 
 
 def test_generate_for_city_locale_uses_correct_localized_calendar_name(tmp_path, monkeypatch):
@@ -59,8 +71,8 @@ def test_generate_for_city_locale_uses_correct_localized_calendar_name(tmp_path,
     main_module.generate_for_city_locale(PALMA, "es", LOCALES, source)
     main_module.generate_for_city_locale(PALMA, "ca", LOCALES, source)
 
-    assert b"X-WR-CALNAME:Festivos de Palma" in (tmp_path / "palma.es.ics").read_bytes()
-    assert b"X-WR-CALNAME:Festius de Palma" in (tmp_path / "palma.ca.ics").read_bytes()
+    assert b"X-WR-CALNAME:Festivos de Palma" in (tmp_path / "illes-balears/palma.es.ics").read_bytes()
+    assert b"X-WR-CALNAME:Festius de Palma" in (tmp_path / "illes-balears/palma.ca.ics").read_bytes()
 
 
 def test_main_returns_nonzero_when_no_city_has_data(tmp_path, monkeypatch):
@@ -82,8 +94,8 @@ def test_main_succeeds_if_at_least_one_city_locale_has_data(tmp_path, monkeypatc
     )
 
     assert main_module.main() == 0
-    assert (tmp_path / "palma.ca.ics").exists()
-    assert not (tmp_path / "palma.es.ics").exists()
+    assert (tmp_path / "illes-balears/palma.ca.ics").exists()
+    assert not (tmp_path / "illes-balears/palma.es.ics").exists()
 
 
 def test_adding_a_registry_entry_produces_a_new_output_file_without_code_changes(tmp_path, monkeypatch):
@@ -96,11 +108,11 @@ def test_adding_a_registry_entry_produces_a_new_output_file_without_code_changes
 
     assert main_module.main() == 0
 
-    for filename in ("palma.es.ics", "palma.ca.ics", "muro.es.ics", "muro.ca.ics"):
+    for filename in ("illes-balears/palma.es.ics", "illes-balears/palma.ca.ics", "illes-balears/muro.es.ics", "illes-balears/muro.ca.ics"):
         assert (tmp_path / filename).exists(), filename
 
-    assert b"San Antonio" in (tmp_path / "muro.es.ics").read_bytes()
-    assert b"Sant Antoni" in (tmp_path / "muro.ca.ics").read_bytes()
+    assert b"San Antonio" in (tmp_path / "illes-balears/muro.es.ics").read_bytes()
+    assert b"Sant Antoni" in (tmp_path / "illes-balears/muro.ca.ics").read_bytes()
 
 
 def test_main_dispatches_different_regions_to_their_own_source(tmp_path, monkeypatch):
@@ -119,10 +131,10 @@ def test_main_dispatches_different_regions_to_their_own_source(tmp_path, monkeyp
 
     assert main_module.main() == 0
 
-    for filename in ("palma.es.ics", "palma.ca.ics", "barcelona.es.ics", "barcelona.ca.ics"):
+    for filename in ("illes-balears/palma.es.ics", "illes-balears/palma.ca.ics", "catalunya/barcelona.es.ics", "catalunya/barcelona.ca.ics"):
         assert (tmp_path / filename).exists(), filename
 
-    assert b"Festa local" in (tmp_path / "barcelona.ca.ics").read_bytes()
+    assert b"Festa local" in (tmp_path / "catalunya/barcelona.ca.ics").read_bytes()
 
 
 def test_main_fails_loudly_if_a_city_region_has_no_registered_source(tmp_path, monkeypatch, capsys):
