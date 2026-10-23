@@ -7,19 +7,21 @@ from pathlib import Path
 from .cities import CityConfig, load_cities
 from .generate_ics import build_calendar
 from .locales import LocaleConfig, load_locales
-from .scraper import SUPPORTED_LOCALES, fetch_holidays
+from .region_source import RegionSource, load_region_sources
 
 OUTPUT_DIR = Path("output")
 
 
-def generate_for_city_locale(city: CityConfig, locale: str, locales: dict[str, LocaleConfig]) -> int:
+def generate_for_city_locale(
+    city: CityConfig, locale: str, locales: dict[str, LocaleConfig], source: RegionSource
+) -> int:
     """Generate the .ics file for one city and locale. Returns the number of holidays written."""
     current_year = date.today().year
     all_holidays = []
     found_any = False
 
     for year in (current_year, current_year + 1):
-        holidays = fetch_holidays(year, city.municipality, locale=locale)
+        holidays = source.fetch_holidays(year, city.municipality, locale=locale)
         if holidays is None:
             print(f"[skip] {city.municipality}/{locale}/{year} calendar not published yet", file=sys.stderr)
             continue
@@ -45,18 +47,28 @@ def generate_for_city_locale(city: CityConfig, locale: str, locales: dict[str, L
 def main() -> int:
     cities = load_cities()
     locales = load_locales()
+    region_sources = load_region_sources()
 
-    unsupported = set(locales) - SUPPORTED_LOCALES
-    if unsupported:
-        print(
-            f"locales.json declares locale(s) the scraper doesn't support yet: "
-            f"{sorted(unsupported)}. Scraper currently supports: {sorted(SUPPORTED_LOCALES)}.",
-            file=sys.stderr,
-        )
-        return 1
+    city_sources: list[RegionSource] = []
+    for city in cities:
+        source = region_sources.get(city.region)
+        if source is None:
+            print(f"No source registered for region {city.region!r} (city {city.municipality}).", file=sys.stderr)
+            return 1
+        unsupported = set(locales) - source.SUPPORTED_LOCALES
+        if unsupported:
+            print(
+                f"locales.json declares locale(s) the {city.region} source doesn't support yet: "
+                f"{sorted(unsupported)}. That source supports: {sorted(source.SUPPORTED_LOCALES)}.",
+                file=sys.stderr,
+            )
+            return 1
+        city_sources.append(source)
 
     total_holidays = sum(
-        generate_for_city_locale(city, locale, locales) for city in cities for locale in locales
+        generate_for_city_locale(city, locale, locales, source)
+        for city, source in zip(cities, city_sources)
+        for locale in locales
     )
 
     if total_holidays == 0:

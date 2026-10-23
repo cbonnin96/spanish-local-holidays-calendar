@@ -3,5 +3,10 @@
     "municipality": "PALMA",
     "region": "Illes Balears",
     "source": "https://www.caib.es/sites/calendarilaboral/{locale}/aao_{year}/"
+  },
+  {
+    "municipality": "Barcelona",
+    "region": "Catalunya",
+    "source": "https://analisi.transparenciacatalunya.cat/Treball/Calendari-laboral-de-Catalunya/yf2b-mjr6"
   }
 ]

@@ -9,30 +9,35 @@ LOCALES = load_locales()
 
 PALMA = CityConfig(municipality="PALMA", region="Illes Balears", source="https://example.test/")
 MURO = CityConfig(municipality="MURO", region="Illes Balears", source="https://example.test/")
+BARCELONA = CityConfig(municipality="Barcelona", region="Catalunya", source="https://example.test/")
 
 FAKE_HOLIDAYS = {
     ("PALMA", "es"): [Holiday(date=date(2026, 1, 20), name="San Sebastián", scope="local", source_url="https://example.test/es/")],
     ("PALMA", "ca"): [Holiday(date=date(2026, 1, 20), name="Sant Sebastià", scope="local", source_url="https://example.test/ca/")],
     ("MURO", "es"): [Holiday(date=date(2026, 1, 17), name="San Antonio", scope="local", source_url="https://example.test/es/")],
     ("MURO", "ca"): [Holiday(date=date(2026, 1, 17), name="Sant Antoni", scope="local", source_url="https://example.test/ca/")],
+    ("Barcelona", "es"): [Holiday(date=date(2026, 5, 25), name="Fiesta local", scope="local", source_url="https://example.test/es/")],
+    ("Barcelona", "ca"): [Holiday(date=date(2026, 5, 25), name="Festa local", scope="local", source_url="https://example.test/ca/")],
 }
 
 
-def fake_fetch_holidays_for(registry):
-    def fake_fetch_holidays(year, municipality, locale):
+class FakeSource:
+    def __init__(self, holidays_by_key, supported_locales=frozenset({"es", "ca"})):
+        self.SUPPORTED_LOCALES = supported_locales
+        self._holidays_by_key = holidays_by_key
+
+    def fetch_holidays(self, year, municipality, locale):
         if year != date.today().year:
             return None
-        return registry.get((municipality, locale))
-
-    return fake_fetch_holidays
+        return self._holidays_by_key.get((municipality, locale))
 
 
 def test_generate_for_city_locale_writes_one_file_per_language(tmp_path, monkeypatch):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
-    monkeypatch.setattr(main_module, "fetch_holidays", fake_fetch_holidays_for(FAKE_HOLIDAYS))
+    source = FakeSource(FAKE_HOLIDAYS)
 
-    es_count = main_module.generate_for_city_locale(PALMA, "es", LOCALES)
-    ca_count = main_module.generate_for_city_locale(PALMA, "ca", LOCALES)
+    es_count = main_module.generate_for_city_locale(PALMA, "es", LOCALES, source)
+    ca_count = main_module.generate_for_city_locale(PALMA, "ca", LOCALES, source)
 
     assert es_count == 1
     assert ca_count == 1
@@ -49,10 +54,10 @@ def test_generate_for_city_locale_writes_one_file_per_language(tmp_path, monkeyp
 
 def test_generate_for_city_locale_uses_correct_localized_calendar_name(tmp_path, monkeypatch):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
-    monkeypatch.setattr(main_module, "fetch_holidays", fake_fetch_holidays_for(FAKE_HOLIDAYS))
+    source = FakeSource(FAKE_HOLIDAYS)
 
-    main_module.generate_for_city_locale(PALMA, "es", LOCALES)
-    main_module.generate_for_city_locale(PALMA, "ca", LOCALES)
+    main_module.generate_for_city_locale(PALMA, "es", LOCALES, source)
+    main_module.generate_for_city_locale(PALMA, "ca", LOCALES, source)
 
     assert b"X-WR-CALNAME:Festivos de Palma" in (tmp_path / "palma.es.ics").read_bytes()
     assert b"X-WR-CALNAME:Festius de Palma" in (tmp_path / "palma.ca.ics").read_bytes()
@@ -61,7 +66,7 @@ def test_generate_for_city_locale_uses_correct_localized_calendar_name(tmp_path,
 def test_main_returns_nonzero_when_no_city_has_data(tmp_path, monkeypatch):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA])
-    monkeypatch.setattr(main_module, "fetch_holidays", lambda year, municipality, locale: None)
+    monkeypatch.setattr(main_module, "load_region_sources", lambda: {"Illes Balears": FakeSource({})})
 
     assert main_module.main() == 1
     assert list(tmp_path.iterdir()) == []
@@ -70,13 +75,11 @@ def test_main_returns_nonzero_when_no_city_has_data(tmp_path, monkeypatch):
 def test_main_succeeds_if_at_least_one_city_locale_has_data(tmp_path, monkeypatch):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA])
-
-    def fake_fetch_holidays(year, municipality, locale):
-        if municipality == "PALMA" and locale == "ca" and year == date.today().year:
-            return FAKE_HOLIDAYS[("PALMA", "ca")]
-        return None
-
-    monkeypatch.setattr(main_module, "fetch_holidays", fake_fetch_holidays)
+    monkeypatch.setattr(
+        main_module,
+        "load_region_sources",
+        lambda: {"Illes Balears": FakeSource({("PALMA", "ca"): FAKE_HOLIDAYS[("PALMA", "ca")]})},
+    )
 
     assert main_module.main() == 0
     assert (tmp_path / "palma.ca.ics").exists()
@@ -89,7 +92,7 @@ def test_adding_a_registry_entry_produces_a_new_output_file_without_code_changes
     exercised here by handing main() a registry with an extra, unseen city."""
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA, MURO])
-    monkeypatch.setattr(main_module, "fetch_holidays", fake_fetch_holidays_for(FAKE_HOLIDAYS))
+    monkeypatch.setattr(main_module, "load_region_sources", lambda: {"Illes Balears": FakeSource(FAKE_HOLIDAYS)})
 
     assert main_module.main() == 0
 
@@ -100,15 +103,50 @@ def test_adding_a_registry_entry_produces_a_new_output_file_without_code_changes
     assert b"Sant Antoni" in (tmp_path / "muro.ca.ics").read_bytes()
 
 
-def test_main_fails_loudly_if_locales_registry_outpaces_scraper_support(tmp_path, monkeypatch, capsys):
+def test_main_dispatches_different_regions_to_their_own_source(tmp_path, monkeypatch):
+    """Acceptance criterion for #17: a city from a second region is routed to
+    its own RegionSource, independent of the first region's source."""
+    monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
+    monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA, BARCELONA])
+    monkeypatch.setattr(
+        main_module,
+        "load_region_sources",
+        lambda: {
+            "Illes Balears": FakeSource(FAKE_HOLIDAYS),
+            "Catalunya": FakeSource(FAKE_HOLIDAYS),
+        },
+    )
+
+    assert main_module.main() == 0
+
+    for filename in ("palma.es.ics", "palma.ca.ics", "barcelona.es.ics", "barcelona.ca.ics"):
+        assert (tmp_path / filename).exists(), filename
+
+    assert b"Festa local" in (tmp_path / "barcelona.ca.ics").read_bytes()
+
+
+def test_main_fails_loudly_if_a_city_region_has_no_registered_source(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
+    monkeypatch.setattr(main_module, "load_cities", lambda: [BARCELONA])
+    monkeypatch.setattr(main_module, "load_region_sources", lambda: {"Illes Balears": FakeSource(FAKE_HOLIDAYS)})
+
+    assert main_module.main() == 1
+    assert list(tmp_path.iterdir()) == []
+
+    err = capsys.readouterr().err
+    assert "Catalunya" in err
+    assert "No source registered" in err
+
+
+def test_main_fails_loudly_if_locales_registry_outpaces_a_sources_support(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA])
+    monkeypatch.setattr(main_module, "load_region_sources", lambda: {"Illes Balears": FakeSource(FAKE_HOLIDAYS)})
     monkeypatch.setattr(
         main_module,
         "load_locales",
         lambda: {**LOCALES, "en": LocaleConfig(calendar_name_template="{city} Holidays")},
     )
-    monkeypatch.setattr(main_module, "fetch_holidays", fake_fetch_holidays_for(FAKE_HOLIDAYS))
 
     assert main_module.main() == 1
     assert list(tmp_path.iterdir()) == []
