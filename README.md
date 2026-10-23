@@ -70,6 +70,16 @@ repo, and served from their raw.githubusercontent.com URLs — no server to
 run, no GitHub Pages setup needed, and holiday data changes rarely enough
 that monthly regeneration is plenty fresh.
 
+**Adding a new region:** every autonomous community publishes its own
+official calendar in its own format, so a new region means a new source
+module, not a config tweak. `region_source.py` defines the `RegionSource`
+protocol that any such module must satisfy — a `SUPPORTED_LOCALES` set and
+a `fetch_holidays(year, municipality, locale)` function returning holidays
+or `None` if that year isn't published yet. `scraper.py` (the Balearics/
+CAIB source) is a plain module that already satisfies this protocol as-is;
+a second region's source doesn't need to be a class, just another module
+shaped the same way.
+
 ## Project structure
 
 ```
@@ -79,12 +89,20 @@ spanish-local-holidays-calendar/
 ├── requirements.txt
 ├── spanish_local_holidays_calendar/
 │   ├── models.py          # Holiday dataclass (date, name, scope, source_url)
-│   ├── scraper.py         # fetches + parses the CAIB page into Holiday objects
+│   ├── cities.py          # CityConfig + load_cities() -- the city registry
+│   ├── cities.json        # data: which municipalities to generate calendars for
+│   ├── locales.py         # LocaleConfig + load_locales() -- per-locale display strings
+│   ├── locales.json       # data: supported locales and their calendar name templates
+│   ├── region_source.py   # RegionSource protocol -- the extension point for a new region
+│   ├── scraper.py         # fetches + parses the CAIB (Balearics) page into Holiday objects
 │   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
-│   └── __main__.py        # CLI entrypoint: scrape current+next year, write per-language .ics files
+│   └── __main__.py        # CLI entrypoint: loop cities x locales, write per-(city,locale) .ics files
 ├── tests/
 │   ├── fixtures/aao_2026_sample.html      # trimmed, stable copy of the real CA page structure
 │   ├── fixtures/aao_2026_sample_es.html   # same, for the ES page
+│   ├── test_cities.py
+│   ├── test_locales.py
+│   ├── test_region_source.py
 │   ├── test_scraper.py
 │   ├── test_generate_ics.py
 │   └── test_main.py
