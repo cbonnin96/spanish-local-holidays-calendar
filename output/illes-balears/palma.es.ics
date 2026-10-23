@@ -1,0 +1,118 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Spanish Local Holidays Calendar//Palma//ES
+X-WR-CALNAME:Festivos de Palma
+X-WR-TIMEZONE:Europe/Madrid
+BEGIN:VEVENT
+SUMMARY:Año Nuevo (regional)
+DTSTART;VALUE=DATE:20260101
+DTEND;VALUE=DATE:20260102
+UID:65ad7860-a18f-543e-8208-4ad8b503a0ad@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Epifanía del Señor (regional)
+DTSTART;VALUE=DATE:20260106
+DTEND;VALUE=DATE:20260107
+UID:3f8444db-e1c1-5f30-9d20-dba954bdf03d@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:San Sebastián (local)
+DTSTART;VALUE=DATE:20260120
+DTEND;VALUE=DATE:20260121
+UID:919246e8-6064-5046-bd19-27d0dd2df0bb@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Día siguiente del Día de les Illes Balears (regional)
+DTSTART;VALUE=DATE:20260302
+DTEND;VALUE=DATE:20260303
+UID:fe285caf-96b8-572f-9b04-144de70eb1ce@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Jueves Santo (regional)
+DTSTART;VALUE=DATE:20260402
+DTEND;VALUE=DATE:20260403
+UID:13fe54e2-8a0e-5605-9210-9cf4987bd5c2@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Viernes Santo (regional)
+DTSTART;VALUE=DATE:20260403
+DTEND;VALUE=DATE:20260404
+UID:eeb69c90-db42-5030-b1f9-71c00c0ed039@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Lunes de Pascua (regional)
+DTSTART;VALUE=DATE:20260406
+DTEND;VALUE=DATE:20260407
+UID:46ec1bd5-e4c6-5129-b4d1-f5c16ad35736@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Día del Trabajador (regional)
+DTSTART;VALUE=DATE:20260501
+DTEND;VALUE=DATE:20260502
+UID:7e0cca28-8ebe-575f-a239-7546a5a22b36@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:San Juan (local)
+DTSTART;VALUE=DATE:20260624
+DTEND;VALUE=DATE:20260625
+UID:96e2b0bb-5b41-5105-b66b-038833a4e69f@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Asunción de la Virgen (regional)
+DTSTART;VALUE=DATE:20260815
+DTEND;VALUE=DATE:20260816
+UID:759afbb0-2753-55a1-a1f2-0c83f33e03ef@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Fiesta Nacional (regional)
+DTSTART;VALUE=DATE:20261012
+DTEND;VALUE=DATE:20261013
+UID:61caede6-da63-52c3-ad10-b4ca1ad10ba0@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Inmaculada Concepción (regional)
+DTSTART;VALUE=DATE:20261208
+DTEND;VALUE=DATE:20261209
+UID:99f5c9c2-c57b-5d5c-8652-15240d42fa22@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Día de Navidad (regional)
+DTSTART;VALUE=DATE:20261225
+DTEND;VALUE=DATE:20261226
+UID:94755f69-0e59-53b9-ac40-34f7e7cce9de@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Segunda fiesta de Navidad (regional)
+DTSTART;VALUE=DATE:20261226
+DTEND;VALUE=DATE:20261227
+UID:b9d80512-64ed-5a0e-b281-2f1b76a8098e@spanish-local-holidays-calendar
+DESCRIPTION:Source: https://www.caib.es/sites/calendarilaboral/es/aao_2026
+ /
+END:VEVENT
+END:VCALENDAR
