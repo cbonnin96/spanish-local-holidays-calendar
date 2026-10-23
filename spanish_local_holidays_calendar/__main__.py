@@ -8,6 +8,7 @@ from .cities import CityConfig, load_cities
 from .generate_ics import build_calendar
 from .locales import LocaleConfig, load_locales
 from .region_source import RegionSource, load_region_sources
+from .slug import slugify
 
 OUTPUT_DIR = Path("output")
 
@@ -37,7 +38,7 @@ def generate_for_city_locale(
     name_template = locale_config.calendar_name_template if locale_config else "{city} Holidays"
     calendar_name = name_template.format(city=city.municipality.title())
     calendar = build_calendar(all_holidays, calendar_name=calendar_name)
-    output_path = OUTPUT_DIR / f"{city.municipality.lower()}.{locale}.ics"
+    output_path = OUTPUT_DIR / slugify(city.region) / f"{slugify(city.municipality)}.{locale}.ics"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(calendar.to_ical())
     print(f"Wrote {output_path} ({len(all_holidays)} holidays)", file=sys.stderr)

@@ -8,19 +8,20 @@ for a given city.
 
 | City | Region | Languages | Source of truth |
 |------|--------|-----------|------------------|
-| Palma | Balearic Islands | [ES](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.es.ics) · [CA](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.ca.ics) | [CAIB labor calendar](https://www.caib.es/sites/calendarilaboral/ca/aao_2026/) |
-| Barcelona | Catalonia | [ES](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/barcelona.es.ics) · [CA](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/barcelona.ca.ics) | [Generalitat open data: regional](https://analisi.transparenciacatalunya.cat/Treball/Calendari-laboral-de-Catalunya/yf2b-mjr6) / [local](https://analisi.transparenciacatalunya.cat/Treball/Calendari-de-festes-locals-a-Catalunya/b4eh-r8up) |
+| Palma | Balearic Islands | [ES](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.es.ics) · [CA](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.ca.ics) | [CAIB labor calendar](https://www.caib.es/sites/calendarilaboral/ca/aao_2026/) |
+| Barcelona | Catalonia | [ES](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.es.ics) · [CA](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.ca.ics) | [Generalitat open data: regional](https://analisi.transparenciacatalunya.cat/Treball/Calendari-laboral-de-Catalunya/yf2b-mjr6) / [local](https://analisi.transparenciacatalunya.cat/Treball/Calendari-de-festes-locals-a-Catalunya/b4eh-r8up) |
 
 ## Subscribe
 
-Each city is available in both Spanish and Catalan — pick the one you want:
+Each city is available in both Spanish and Catalan — pick the one you want.
+URLs follow `output/<region-slug>/<city-slug>.<lang>.ics`:
 
 | City | Language | URL |
 |------|----------|-----|
-| Palma | Español (ES) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.es.ics` |
-| Palma | Català (CA) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/palma.ca.ics` |
-| Barcelona | Español (ES) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/barcelona.es.ics` |
-| Barcelona | Català (CA) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/barcelona.ca.ics` |
+| Palma | Español (ES) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.es.ics` |
+| Palma | Català (CA) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.ca.ics` |
+| Barcelona | Español (ES) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.es.ics` |
+| Barcelona | Català (CA) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.ca.ics` |
 
 Add the URL in your calendar app as a subscription (not a one-time import):
 Google Calendar → "Other calendars" → "From URL"; Apple Calendar → File →
@@ -116,6 +117,7 @@ spanish-local-holidays-calendar/
 │   ├── scraper.py             # Balearics/CAIB source: HTML scrape
 │   ├── catalonia_source.py    # Catalonia source: Generalitat open data API
 │   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
+│   ├── slug.py            # slugify() -- region/city display names to path segments
 │   └── __main__.py        # CLI entrypoint: dispatch cities x locales to their RegionSource
 ├── tests/
 │   ├── fixtures/aao_2026_sample.html      # trimmed, stable copy of the real CA page structure
@@ -125,20 +127,23 @@ spanish-local-holidays-calendar/
 │   ├── test_region_source.py
 │   ├── test_scraper.py
 │   ├── test_catalonia_source.py
+│   ├── test_slug.py
 │   ├── test_generate_ics.py
 │   └── test_main.py
 ├── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
-└── output/                # generated artifacts, committed (this is what's served):
-    ├── palma.es.ics        #   one file per (city, locale)
-    ├── palma.ca.ics
-    ├── barcelona.es.ics
-    └── barcelona.ca.ics
+└── output/                        # generated artifacts, committed (this is what's served)
+    ├── illes-balears/
+    │   ├── palma.es.ics            # one file per (city, locale)
+    │   └── palma.ca.ics
+    └── catalunya/
+        ├── barcelona.es.ics
+        └── barcelona.ca.ics
 ```
 
 **Build/run:**
 ```
 make build      # docker build -t spanish-local-holidays-calendar .
-make generate   # fetch every registered city's holidays, write output/<city>.<lang>.ics
+make generate   # fetch every registered city's holidays, write output/<region-slug>/<city-slug>.<lang>.ics
 make test       # run the test suite inside the container
 ```
 
