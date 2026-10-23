@@ -10,8 +10,8 @@ from .scraper import fetch_holidays
 MUNICIPALITY = "PALMA"
 LOCALES = ("es", "ca")
 CALENDAR_NAMES = {
-    "es": "Fiestas de Palma",
-    "ca": "Festes de Palma",
+    "es": "Festivos de Palma",
+    "ca": "Festius de Palma",
 }
 OUTPUT_DIR = Path("output")
 

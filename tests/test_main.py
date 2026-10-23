@@ -33,6 +33,21 @@ def test_generate_for_locale_writes_one_file_per_language(tmp_path, monkeypatch)
     assert es_file.read_bytes() != ca_file.read_bytes()
 
 
+def test_generate_for_locale_uses_correct_localized_calendar_name(tmp_path, monkeypatch):
+    monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
+
+    def fake_fetch_holidays(year, municipality, locale):
+        return FAKE_HOLIDAYS[locale] if year == date.today().year else None
+
+    monkeypatch.setattr(main_module, "fetch_holidays", fake_fetch_holidays)
+
+    main_module.generate_for_locale("es")
+    main_module.generate_for_locale("ca")
+
+    assert b"X-WR-CALNAME:Festivos de Palma" in (tmp_path / "palma.es.ics").read_bytes()
+    assert b"X-WR-CALNAME:Festius de Palma" in (tmp_path / "palma.ca.ics").read_bytes()
+
+
 def test_main_returns_nonzero_when_no_locale_has_data(tmp_path, monkeypatch):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "fetch_holidays", lambda year, municipality, locale: None)
