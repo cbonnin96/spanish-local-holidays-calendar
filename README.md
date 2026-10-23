@@ -28,6 +28,12 @@ Google Calendar → "Other calendars" → "From URL"; Apple Calendar → File �
 "New Calendar Subscription". The file is kept current by a scheduled GitHub
 Action (see below), so your calendar app will pick up changes automatically.
 
+The table above is maintained by hand; [`output/index.json`](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/index.json)
+is the generated, always-current source of truth — every `(city, region,
+locale)` combination that's actually live right now, each with its `path`
+and full `url`. This is what scales past a hand-maintained table once
+there are many cities: read the index, don't guess the filename.
+
 ## Why
 
 Most holiday calendars only cover national public holidays. In countries with
@@ -132,6 +138,7 @@ spanish-local-holidays-calendar/
 │   └── test_main.py
 ├── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
 └── output/                        # generated artifacts, committed (this is what's served)
+    ├── index.json                  # generated: every live (city, region, locale) + its url
     ├── illes-balears/
     │   ├── palma.es.ics            # one file per (city, locale)
     │   └── palma.ca.ics

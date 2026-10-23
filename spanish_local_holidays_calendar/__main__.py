@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from datetime import date
 from pathlib import Path
@@ -11,12 +12,15 @@ from .region_source import RegionSource, load_region_sources
 from .slug import slugify
 
 OUTPUT_DIR = Path("output")
+RAW_BASE_URL = "https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output"
 
 
 def generate_for_city_locale(
     city: CityConfig, locale: str, locales: dict[str, LocaleConfig], source: RegionSource
-) -> int:
-    """Generate the .ics file for one city and locale. Returns the number of holidays written."""
+) -> tuple[int, Path | None]:
+    """Generate the .ics file for one city and locale. Returns the number of
+    holidays written, and the output path if a file was actually written
+    (None if nothing was available for this city/locale)."""
     current_year = date.today().year
     all_holidays = []
     found_any = False
@@ -32,7 +36,7 @@ def generate_for_city_locale(
 
     if not found_any:
         print(f"No holiday data could be fetched for {city.municipality}/{locale}.", file=sys.stderr)
-        return 0
+        return 0, None
 
     locale_config = locales.get(locale)
     name_template = locale_config.calendar_name_template if locale_config else "{city} Holidays"
@@ -42,7 +46,16 @@ def generate_for_city_locale(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(calendar.to_ical())
     print(f"Wrote {output_path} ({len(all_holidays)} holidays)", file=sys.stderr)
-    return len(all_holidays)
+    return len(all_holidays), output_path
+
+
+def write_index(entries: list[dict[str, str]]) -> None:
+    """Write output/index.json listing every (city, locale) combination that
+    actually produced a file, so it always reflects exactly what's currently
+    available -- not every configured city/locale, just the live ones."""
+    ordered = sorted(entries, key=lambda entry: (entry["region"], entry["city"], entry["locale"]))
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    (OUTPUT_DIR / "index.json").write_text(json.dumps(ordered, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def main() -> int:
@@ -66,11 +79,25 @@ def main() -> int:
             return 1
         city_sources.append(source)
 
-    total_holidays = sum(
-        generate_for_city_locale(city, locale, locales, source)
-        for city, source in zip(cities, city_sources)
-        for locale in locales
-    )
+    total_holidays = 0
+    index_entries: list[dict[str, str]] = []
+    for city, source in zip(cities, city_sources):
+        for locale in locales:
+            holiday_count, output_path = generate_for_city_locale(city, locale, locales, source)
+            total_holidays += holiday_count
+            if output_path is not None:
+                relative_path = output_path.relative_to(OUTPUT_DIR).as_posix()
+                index_entries.append(
+                    {
+                        "city": city.municipality,
+                        "region": city.region,
+                        "locale": locale,
+                        "path": relative_path,
+                        "url": f"{RAW_BASE_URL}/{relative_path}",
+                    }
+                )
+
+    write_index(index_entries)
 
     if total_holidays == 0:
         print("No holiday data could be fetched for any city/locale/year.", file=sys.stderr)
