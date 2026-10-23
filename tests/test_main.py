@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 import spanish_local_holidays_calendar.__main__ as main_module
@@ -36,11 +37,13 @@ def test_generate_for_city_locale_writes_one_file_per_language(tmp_path, monkeyp
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     source = FakeSource(FAKE_HOLIDAYS)
 
-    es_count = main_module.generate_for_city_locale(PALMA, "es", LOCALES, source)
-    ca_count = main_module.generate_for_city_locale(PALMA, "ca", LOCALES, source)
+    es_count, es_path = main_module.generate_for_city_locale(PALMA, "es", LOCALES, source)
+    ca_count, ca_path = main_module.generate_for_city_locale(PALMA, "ca", LOCALES, source)
 
     assert es_count == 1
     assert ca_count == 1
+    assert es_path == tmp_path / "illes-balears" / "palma.es.ics"
+    assert ca_path == tmp_path / "illes-balears" / "palma.ca.ics"
 
     es_file = tmp_path / "illes-balears/palma.es.ics"
     ca_file = tmp_path / "illes-balears/palma.ca.ics"
@@ -75,13 +78,24 @@ def test_generate_for_city_locale_uses_correct_localized_calendar_name(tmp_path,
     assert b"X-WR-CALNAME:Festius de Palma" in (tmp_path / "illes-balears/palma.ca.ics").read_bytes()
 
 
+def test_generate_for_city_locale_returns_none_path_when_nothing_available(tmp_path, monkeypatch):
+    monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
+    source = FakeSource({})
+
+    count, path = main_module.generate_for_city_locale(PALMA, "es", LOCALES, source)
+
+    assert count == 0
+    assert path is None
+
+
 def test_main_returns_nonzero_when_no_city_has_data(tmp_path, monkeypatch):
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA])
     monkeypatch.setattr(main_module, "load_region_sources", lambda: {"Illes Balears": FakeSource({})})
 
     assert main_module.main() == 1
-    assert list(tmp_path.iterdir()) == []
+    assert list(tmp_path.glob("**/*.ics")) == []
+    assert json.loads((tmp_path / "index.json").read_text()) == []
 
 
 def test_main_succeeds_if_at_least_one_city_locale_has_data(tmp_path, monkeypatch):
@@ -135,6 +149,51 @@ def test_main_dispatches_different_regions_to_their_own_source(tmp_path, monkeyp
         assert (tmp_path / filename).exists(), filename
 
     assert b"Festa local" in (tmp_path / "catalunya/barcelona.ca.ics").read_bytes()
+
+
+def test_main_writes_index_json_reflecting_only_what_was_generated(tmp_path, monkeypatch):
+    """Acceptance criterion for #14: the index lists every (city, region,
+    locale) combination that actually produced a file, with its path and
+    URL -- and nothing that didn't (here, Palma ES has no data)."""
+    monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
+    monkeypatch.setattr(main_module, "load_cities", lambda: [PALMA, BARCELONA])
+    holidays_without_palma_es = {k: v for k, v in FAKE_HOLIDAYS.items() if k != ("PALMA", "es")}
+    monkeypatch.setattr(
+        main_module,
+        "load_region_sources",
+        lambda: {
+            "Illes Balears": FakeSource(holidays_without_palma_es),
+            "Catalunya": FakeSource(holidays_without_palma_es),
+        },
+    )
+
+    assert main_module.main() == 0
+
+    index = json.loads((tmp_path / "index.json").read_text())
+
+    assert index == [
+        {
+            "city": "Barcelona",
+            "region": "Catalunya",
+            "locale": "ca",
+            "path": "catalunya/barcelona.ca.ics",
+            "url": f"{main_module.RAW_BASE_URL}/catalunya/barcelona.ca.ics",
+        },
+        {
+            "city": "Barcelona",
+            "region": "Catalunya",
+            "locale": "es",
+            "path": "catalunya/barcelona.es.ics",
+            "url": f"{main_module.RAW_BASE_URL}/catalunya/barcelona.es.ics",
+        },
+        {
+            "city": "PALMA",
+            "region": "Illes Balears",
+            "locale": "ca",
+            "path": "illes-balears/palma.ca.ics",
+            "url": f"{main_module.RAW_BASE_URL}/illes-balears/palma.ca.ics",
+        },
+    ]
 
 
 def test_main_fails_loudly_if_a_city_region_has_no_registered_source(tmp_path, monkeypatch, capsys):
