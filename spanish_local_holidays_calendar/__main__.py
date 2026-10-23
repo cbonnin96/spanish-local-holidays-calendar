@@ -6,17 +6,13 @@ from pathlib import Path
 
 from .cities import CityConfig, load_cities
 from .generate_ics import build_calendar
+from .locales import LocaleConfig, load_locales
 from .scraper import fetch_holidays
 
-LOCALES = ("es", "ca")
-CALENDAR_NAME_TEMPLATES = {
-    "es": "Festivos de {city}",
-    "ca": "Festius de {city}",
-}
 OUTPUT_DIR = Path("output")
 
 
-def generate_for_city_locale(city: CityConfig, locale: str) -> int:
+def generate_for_city_locale(city: CityConfig, locale: str, locales: dict[str, LocaleConfig]) -> int:
     """Generate the .ics file for one city and locale. Returns the number of holidays written."""
     current_year = date.today().year
     all_holidays = []
@@ -35,7 +31,8 @@ def generate_for_city_locale(city: CityConfig, locale: str) -> int:
         print(f"No holiday data could be fetched for {city.municipality}/{locale}.", file=sys.stderr)
         return 0
 
-    name_template = CALENDAR_NAME_TEMPLATES.get(locale, "{city} Holidays")
+    locale_config = locales.get(locale)
+    name_template = locale_config.calendar_name_template if locale_config else "{city} Holidays"
     calendar_name = name_template.format(city=city.municipality.title())
     calendar = build_calendar(all_holidays, calendar_name=calendar_name)
     output_path = OUTPUT_DIR / f"{city.municipality.lower()}.{locale}.ics"
@@ -47,8 +44,9 @@ def generate_for_city_locale(city: CityConfig, locale: str) -> int:
 
 def main() -> int:
     cities = load_cities()
+    locales = load_locales()
     total_holidays = sum(
-        generate_for_city_locale(city, locale) for city in cities for locale in LOCALES
+        generate_for_city_locale(city, locale, locales) for city in cities for locale in locales
     )
 
     if total_holidays == 0:

@@ -2,7 +2,10 @@ from datetime import date
 
 import spanish_local_holidays_calendar.__main__ as main_module
 from spanish_local_holidays_calendar.cities import CityConfig
+from spanish_local_holidays_calendar.locales import load_locales
 from spanish_local_holidays_calendar.models import Holiday
+
+LOCALES = load_locales()
 
 PALMA = CityConfig(municipality="PALMA", region="Illes Balears", source="https://example.test/")
 MURO = CityConfig(municipality="MURO", region="Illes Balears", source="https://example.test/")
@@ -28,8 +31,8 @@ def test_generate_for_city_locale_writes_one_file_per_language(tmp_path, monkeyp
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "fetch_holidays", fake_fetch_holidays_for(FAKE_HOLIDAYS))
 
-    es_count = main_module.generate_for_city_locale(PALMA, "es")
-    ca_count = main_module.generate_for_city_locale(PALMA, "ca")
+    es_count = main_module.generate_for_city_locale(PALMA, "es", LOCALES)
+    ca_count = main_module.generate_for_city_locale(PALMA, "ca", LOCALES)
 
     assert es_count == 1
     assert ca_count == 1
@@ -48,8 +51,8 @@ def test_generate_for_city_locale_uses_correct_localized_calendar_name(tmp_path,
     monkeypatch.setattr(main_module, "OUTPUT_DIR", tmp_path)
     monkeypatch.setattr(main_module, "fetch_holidays", fake_fetch_holidays_for(FAKE_HOLIDAYS))
 
-    main_module.generate_for_city_locale(PALMA, "es")
-    main_module.generate_for_city_locale(PALMA, "ca")
+    main_module.generate_for_city_locale(PALMA, "es", LOCALES)
+    main_module.generate_for_city_locale(PALMA, "ca", LOCALES)
 
     assert b"X-WR-CALNAME:Festivos de Palma" in (tmp_path / "palma.es.ics").read_bytes()
     assert b"X-WR-CALNAME:Festius de Palma" in (tmp_path / "palma.ca.ics").read_bytes()

@@ -1,0 +1,8 @@
+{
+  "es": {
+    "calendar_name_template": "Festivos de {city}"
+  },
+  "ca": {
+    "calendar_name_template": "Festius de {city}"
+  }
+}
