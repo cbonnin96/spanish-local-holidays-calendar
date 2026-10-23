@@ -1,4 +1,4 @@
-name: Update Palma holidays calendar
+name: Update holiday calendars
 
 on:
   schedule:
@@ -43,5 +43,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add output/
-          git diff --staged --quiet || git commit -m "Update Palma holidays calendar"
+          git diff --staged --quiet || git commit -m "Update holiday calendars"
           git push
