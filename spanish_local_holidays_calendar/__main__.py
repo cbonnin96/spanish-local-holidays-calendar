@@ -5,11 +5,12 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from .cities import CityConfig, load_cities
 from .generate_ics import build_calendar
-from .locales import LocaleConfig, load_locales
-from .region_source import RegionSource, load_region_sources
+from .registry.cities import CityConfig, load_cities
+from .registry.locales import LocaleConfig, load_locales
+from .registry.region_sources import load_region_sources
 from .slug import slugify
+from .sources.base import RegionSource
 
 OUTPUT_DIR = Path("output")
 RAW_BASE_URL = "https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output"
