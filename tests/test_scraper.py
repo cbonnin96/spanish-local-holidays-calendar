@@ -7,6 +7,7 @@ from spanish_local_holidays_calendar.scraper import (
     fetch_page,
     parse_local_holidays,
     parse_regional_holidays,
+    parse_split_local_holidays,
 )
 
 FIXTURE = Path(__file__).parent / "fixtures" / "aao_2026_sample.html"
@@ -74,6 +75,53 @@ def test_parse_local_holidays_excludes_split_municipality():
     assert "ANDRATX" not in holidays_by_municipality
 
 
+def test_parse_split_local_holidays_attributes_each_sub_locality_correctly():
+    """Acceptance criterion for #12: Andratx's three sub-localities (Andratx,
+    Port d'Andratx, s'Arracó) are each correctly attributed their own
+    holidays, not merged or misattributed to the wrong sub-locality."""
+    html = FIXTURE.read_text(encoding="utf-8")
+    holidays_by_sub_locality = parse_split_local_holidays(html, 2026, SOURCE_URL)
+
+    assert set(holidays_by_sub_locality) >= {"ANDRATX", "PORT D'ANDRATX", "S'ARRACÓ"}
+
+    port_andratx = holidays_by_sub_locality["PORT D'ANDRATX"]
+    assert all(h.scope == "local" for h in port_andratx)
+    carme = next(h for h in port_andratx if h.name == "Mare de Déu del Carme")
+    assert carme.date == date(2026, 7, 16)
+
+    arraco = holidays_by_sub_locality["S'ARRACÓ"]
+    agusti = next(h for h in arraco if h.name == "Sant Agustí")
+    assert agusti.date == date(2026, 8, 28)
+
+    # all three sub-localities share the municipality-wide Dec 7 bridge day,
+    # unnamed in the source -- each still gets its own Holiday for it.
+    for sub_locality in ("ANDRATX", "PORT D'ANDRATX", "S'ARRACÓ"):
+        assert any(h.date == date(2026, 12, 7) for h in holidays_by_sub_locality[sub_locality])
+
+
+def test_parse_split_local_holidays_skips_ambiguous_grouped_sub_localities():
+    """Acceptance criterion for #12: when a split municipality's heading and
+    data lines don't line up cleanly (Sant Josep de sa Talaia groups several
+    place names under each heading entry instead of listing them one-by-one,
+    so pairing would be a guess), it's skipped rather than misattributed."""
+    html = FIXTURE.read_text(encoding="utf-8")
+    holidays_by_sub_locality = parse_split_local_holidays(html, 2026, SOURCE_URL)
+
+    assert not any("TALAIA" in name or "JORDI" in name for name in holidays_by_sub_locality)
+
+
+def test_fetch_holidays_resolves_a_sub_locality_by_name(monkeypatch):
+    """Acceptance criterion for #12: a sub-locality can be fetched by name,
+    just like any single-entry municipality."""
+    html = FIXTURE.read_text(encoding="utf-8")
+    monkeypatch.setattr("spanish_local_holidays_calendar.scraper.fetch_page", lambda year, locale: html)
+
+    holidays = fetch_holidays(2026, municipality="Port d'Andratx", locale="ca")
+
+    local_names = {h.name for h in holidays if h.scope == "local"}
+    assert "Mare de Déu del Carme" in local_names
+
+
 def test_fetch_holidays_works_for_a_single_entry_municipality_beyond_palma(monkeypatch):
     """Acceptance criterion for #11: fetching by municipality name isn't
     special-cased to Palma -- any single-entry municipality works."""
@@ -110,6 +158,19 @@ def test_parse_local_holidays_matches_only_target_municipality_es():
     san_sebastian = next(h for h in palma if h.name == "San Sebastián")
     assert san_sebastian.date == date(2026, 1, 20)
     assert "ANDRATX" not in holidays_by_municipality
+
+
+def test_parse_split_local_holidays_attributes_each_sub_locality_correctly_es():
+    html = FIXTURE_ES.read_text(encoding="utf-8")
+    holidays_by_sub_locality = parse_split_local_holidays(html, 2026, SOURCE_URL)
+
+    assert set(holidays_by_sub_locality) >= {"ANDRATX", "PORT D'ANDRATX", "S'ARRACÓ"}
+
+    port_andratx = holidays_by_sub_locality["PORT D'ANDRATX"]
+    carmen = next(h for h in port_andratx if h.name == "Virgen del Carmen")
+    assert carmen.date == date(2026, 7, 16)
+
+    assert not any("TALAIA" in name or "JORGE" in name for name in holidays_by_sub_locality)
 
 
 def test_fetch_page_builds_locale_specific_url(monkeypatch):
