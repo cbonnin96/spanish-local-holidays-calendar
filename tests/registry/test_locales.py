@@ -1,6 +1,6 @@
 import json
 
-from spanish_local_holidays_calendar.locales import LocaleConfig, load_locales
+from spanish_local_holidays_calendar.registry.locales import LocaleConfig, load_locales
 
 
 def test_load_locales_parses_the_real_registry():

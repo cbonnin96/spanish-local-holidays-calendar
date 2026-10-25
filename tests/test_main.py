@@ -2,8 +2,8 @@ import json
 from datetime import date
 
 import spanish_local_holidays_calendar.__main__ as main_module
-from spanish_local_holidays_calendar.cities import CityConfig
-from spanish_local_holidays_calendar.locales import LocaleConfig, load_locales
+from spanish_local_holidays_calendar.registry.cities import CityConfig
+from spanish_local_holidays_calendar.registry.locales import LocaleConfig, load_locales
 from spanish_local_holidays_calendar.models import Holiday
 
 LOCALES = load_locales()

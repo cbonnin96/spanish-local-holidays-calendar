@@ -1,6 +1,6 @@
 from datetime import date
 
-from spanish_local_holidays_calendar.catalonia_source import (
+from spanish_local_holidays_calendar.sources.catalunya import (
     LOCAL_DATASET_URL,
     REGIONAL_DATASET_URL,
     _regional_holiday_name,
@@ -63,7 +63,7 @@ def test_fetch_holidays_dedupes_rows_and_assigns_names(monkeypatch):
         {"any_calendari": "2026", "data": "2026-09-24T00:00:00.000", "festiu": "test_junk_value"},
     ]
     monkeypatch.setattr(
-        "spanish_local_holidays_calendar.catalonia_source.requests.get",
+        "spanish_local_holidays_calendar.sources.catalunya.requests.get",
         _fake_requests_get(regional_rows, local_rows),
     )
 
@@ -80,7 +80,7 @@ def test_fetch_holidays_dedupes_rows_and_assigns_names(monkeypatch):
 
 def test_fetch_holidays_returns_none_when_year_not_published(monkeypatch):
     monkeypatch.setattr(
-        "spanish_local_holidays_calendar.catalonia_source.requests.get",
+        "spanish_local_holidays_calendar.sources.catalunya.requests.get",
         _fake_requests_get(regional_rows=[], local_rows=[]),
     )
 

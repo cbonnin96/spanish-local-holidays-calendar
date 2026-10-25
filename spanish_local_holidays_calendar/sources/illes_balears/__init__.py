@@ -7,7 +7,7 @@ from datetime import date
 import requests
 from bs4 import BeautifulSoup
 
-from .models import Holiday
+from ...models import Holiday
 
 BASE_URL = "https://www.caib.es/sites/calendarilaboral/{locale}/aao_{year}/"
 

@@ -60,33 +60,31 @@ committed files, not a second source of truth.
 
 ## How to add a new region or city
 
-**Adding a city in an already-registered region** is just a `cities.json`
-change — add an entry with the municipality, region, and source URL, and
-the next run picks it up. No code changes.
+**Adding a city in an already-registered region** is just a
+`registry/cities.json` change — add an entry with the municipality,
+region, and source URL, and the next run picks it up. No code changes.
 
-**Adding a new region** means writing that region's own source module:
-every autonomous community publishes its own official calendar in its own
-format, so there's no shared scraper to parameterize. `region_source.py`
-defines the `RegionSource` protocol any such module must satisfy — a
-`SUPPORTED_LOCALES` set and a `fetch_holidays(year, municipality,
-locale)` function returning holidays or `None` if that year isn't
-published yet — and it doesn't need to be a class, just a module shaped
-the same way. Then add one line to `region_sources.json` mapping the
-region's name to that module's dotted import path —
-`load_region_sources()` imports each one and checks it against
-`RegionSource`, so a misconfigured entry fails loudly at startup instead
-of with a confusing error deep in the pipeline.
+**Adding a new region** means writing that region's own source module
+under `sources/`: every autonomous community publishes its own official
+calendar in its own format, so there's no shared scraper to parameterize.
+`sources/base.py` defines the `RegionSource` protocol any such module
+must satisfy — a `SUPPORTED_LOCALES` set and a `fetch_holidays(year,
+municipality, locale)` function returning holidays or `None` if that
+year isn't published yet — and it doesn't need to be a class, just a
+module shaped the same way. Then add one line to
+`registry/region_sources.json` mapping the region's name to that
+module's dotted import path — `load_region_sources()` imports each one
+and checks it against `RegionSource`, so a misconfigured entry fails
+loudly at startup instead of with a confusing error deep in the
+pipeline.
 
-Catalonia's source (`catalonia_source.py`) is a useful second data point
-before writing a third: it's a different shape entirely from the
-Balearics' HTML scrape (`scraper.py`) — the Generalitat's official open
-data portal, queried as JSON. It has no holiday *name* field at all:
-regional holidays are named via a lookup of Catalonia's known fixed dates
-(the two Easter-relative ones computed from Easter Sunday, since they
-move every year), and local holidays are always given a generic
-translated name ("Festa local"/"Fiesta local") since the source's own
-"festiu" text field turned out to contain leftover test/junk entries and
-isn't trustworthy as a display name.
+Each region's own folder under `sources/` has its own README with the
+quirks and tradeoffs specific to that source:
+[`sources/illes_balears/README.md`](spanish_local_holidays_calendar/sources/illes_balears/README.md)
+and
+[`sources/catalunya/README.md`](spanish_local_holidays_calendar/sources/catalunya/README.md)
+— worth reading both before writing a third, as two genuinely different
+data points (one's an HTML scrape, the other's a JSON API).
 
 ## Project structure
 
@@ -97,25 +95,28 @@ spanish-local-holidays-calendar/
 ├── requirements.txt
 ├── spanish_local_holidays_calendar/
 │   ├── models.py          # Holiday dataclass (date, name, scope, source_url)
-│   ├── cities.py          # CityConfig + load_cities() -- the city registry
-│   ├── cities.json        # data: which municipalities to generate calendars for
-│   ├── locales.py         # LocaleConfig + load_locales() -- per-locale display strings
-│   ├── locales.json       # data: supported locales and their calendar name templates
-│   ├── region_source.py   # RegionSource protocol + load_region_sources()
-│   ├── region_sources.json # data: region name -> source module's dotted import path
-│   ├── scraper.py             # Balearics/CAIB source: HTML scrape
-│   ├── catalonia_source.py    # Catalonia source: Generalitat open data API
 │   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
 │   ├── slug.py            # slugify() -- region/city display names to path segments
-│   └── __main__.py        # CLI entrypoint: dispatch cities x locales to their RegionSource
-├── tests/
-│   ├── fixtures/aao_2026_sample.html      # trimmed, stable copy of the real CA page structure
-│   ├── fixtures/aao_2026_sample_es.html   # same, for the ES page
-│   ├── test_cities.py
-│   ├── test_locales.py
-│   ├── test_region_source.py
-│   ├── test_scraper.py
-│   ├── test_catalonia_source.py
+│   ├── __main__.py        # CLI entrypoint: dispatch cities x locales to their RegionSource
+│   ├── registry/          # JSON-backed config: what to generate
+│   │   ├── cities.py / cities.json              # CityConfig + load_cities()
+│   │   ├── locales.py / locales.json            # LocaleConfig + load_locales()
+│   │   └── region_sources.py / region_sources.json  # load_region_sources()
+│   └── sources/           # how to get the data: the RegionSource protocol + each region's own implementation
+│       ├── base.py                    # RegionSource protocol
+│       ├── illes_balears/             # Balearics/CAIB source: HTML scrape
+│       │   ├── __init__.py
+│       │   └── README.md              # CAIB-specific quirks
+│       └── catalunya/                 # Catalonia source: Generalitat open data API
+│           ├── __init__.py
+│           └── README.md              # Catalunya-specific quirks
+├── tests/                 # mirrors the package structure above
+│   ├── registry/
+│   │   ├── test_cities.py, test_locales.py, test_region_sources.py
+│   ├── sources/
+│   │   ├── fixtures/aao_2026_sample.html      # trimmed, stable copy of the real CA page structure
+│   │   ├── fixtures/aao_2026_sample_es.html   # same, for the ES page
+│   │   ├── test_base.py, test_illes_balears.py, test_catalunya.py
 │   ├── test_slug.py
 │   ├── test_generate_ics.py
 │   └── test_main.py
@@ -138,21 +139,3 @@ make build      # docker build -t spanish-local-holidays-calendar .
 make generate   # fetch every registered city's holidays, write output/<region-slug>/<city-slug>.<lang>.ics
 make test       # run the test suite inside the container
 ```
-
-**Balearics/CAIB-specific notes:** the scraper discovers every municipality
-listed on the page as a single entry (no sub-localities) — 48 of the
-Balearics' 67 municipalities, Palma among them — plus the individual
-sub-localities of municipalities split into several of them (e.g. Andratx /
-Port d'Andratx / s'Arracó), fetchable by sub-locality name just like any
-other municipality. CAIB consistently lines up a split municipality's data
-cell as one shared holiday followed by one sub-locality-specific holiday,
-repeated per sub-locality in the same order as the heading names — but
-where a row doesn't fit that shape (Sant Josep de sa Talaia groups several
-place names under each heading entry instead of listing them one-by-one),
-the pairing would be a guess, so it's skipped rather than risking a
-misattributed holiday. The source also doesn't
-separate national from regional holidays — its "general Illes Balears" list
-already folds Spain's national holidays (New Year, National Day, Christmas,
-etc.) in with the Balearics' own additions (e.g. Dia de les Illes Balears).
-It's tagged `scope: regional` as a whole rather than guessing a split;
-Palma's own holidays are tagged `scope: local`.
