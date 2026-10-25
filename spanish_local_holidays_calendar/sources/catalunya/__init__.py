@@ -6,6 +6,7 @@ import requests
 from dateutil.easter import easter
 
 from ...models import Holiday
+from ..base import SourceUnavailableError
 
 SUPPORTED_LOCALES = frozenset({"es", "ca"})
 
@@ -72,8 +73,11 @@ def _regional_holiday_name(holiday_date: date, locale: str) -> str:
 
 
 def _fetch_rows(url: str, where: str) -> list[dict]:
-    response = requests.get(url, params={"$where": where}, timeout=30)
-    response.raise_for_status()
+    try:
+        response = requests.get(url, params={"$where": where}, timeout=30)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as error:
+        raise SourceUnavailableError(f"Catalunya open data portal request to {url} failed: {error}") from error
     return response.json()
 
 

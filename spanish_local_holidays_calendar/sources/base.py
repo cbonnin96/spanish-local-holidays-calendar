@@ -5,6 +5,14 @@ from typing import Protocol, runtime_checkable
 from ..models import Holiday
 
 
+class SourceUnavailableError(Exception):
+    """Raised by a RegionSource's fetch_holidays when it couldn't reach or
+    parse its official data source, for any reason other than "this year
+    isn't published yet" (that case returns None instead). Lets the
+    pipeline report a clean one-line error instead of a raw network
+    traceback."""
+
+
 @runtime_checkable
 class RegionSource(Protocol):
     """Contract a region's official holiday source must satisfy to plug into

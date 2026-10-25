@@ -8,6 +8,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from ...models import Holiday
+from ..base import SourceUnavailableError
 
 BASE_URL = "https://www.caib.es/sites/calendarilaboral/{locale}/aao_{year}/"
 
@@ -62,10 +63,13 @@ def fetch_page(year: int, locale: str = "ca") -> str | None:
     """Return the raw HTML for a given year's calendar and locale, or None if
     not published yet. `locale` is "ca" (Catalan) or "es" (Spanish)."""
     url = BASE_URL.format(locale=locale, year=year)
-    response = requests.get(url, timeout=30)
-    if response.status_code == 404:
-        return None
-    response.raise_for_status()
+    try:
+        response = requests.get(url, timeout=30)
+        if response.status_code == 404:
+            return None
+        response.raise_for_status()
+    except requests.exceptions.RequestException as error:
+        raise SourceUnavailableError(f"CAIB calendar request to {url} failed: {error}") from error
     return response.text
 
 

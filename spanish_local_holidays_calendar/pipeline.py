@@ -10,7 +10,7 @@ from .generate_ics import build_calendar
 from .registry.cities import CityConfig
 from .registry.locales import LocaleConfig
 from .slug import slugify
-from .sources.base import RegionSource
+from .sources.base import RegionSource, SourceUnavailableError
 
 
 @dataclass
@@ -102,7 +102,11 @@ class CalendarPipeline:
         index_entries: list[dict[str, str]] = []
         for city, source in zip(self.cities, city_sources):
             for locale in self.locales:
-                holiday_count, output_path = self.generate_for_city_locale(city, locale, source)
+                try:
+                    holiday_count, output_path = self.generate_for_city_locale(city, locale, source)
+                except SourceUnavailableError as error:
+                    print(f"{city.region} source unavailable, aborting: {error}", file=sys.stderr)
+                    return 1
                 total_holidays += holiday_count
                 if output_path is not None:
                     relative_path = output_path.relative_to(self.output_dir).as_posix()
