@@ -4,48 +4,21 @@ A subscribable calendar feed (iCal/ICS) that bundles all the holidays that actua
 affect you in Spain: **national**, **regional/autonomic**, and **local/municipal**,
 for a given city.
 
-## Implemented cities
-
-| City | Region | Languages | Source of truth |
-|------|--------|-----------|------------------|
-| Palma | Balearic Islands | [ES](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.es.ics) · [CA](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.ca.ics) | [CAIB labor calendar](https://www.caib.es/sites/calendarilaboral/ca/aao_2026/) |
-| Barcelona | Catalonia | [ES](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.es.ics) · [CA](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.ca.ics) | [Generalitat open data: regional](https://analisi.transparenciacatalunya.cat/Treball/Calendari-laboral-de-Catalunya/yf2b-mjr6) / [local](https://analisi.transparenciacatalunya.cat/Treball/Calendari-de-festes-locals-a-Catalunya/b4eh-r8up) |
-
 ## Subscribe
 
-Each city is available in both Spanish and Catalan — pick the one you want.
-URLs follow `output/<region-slug>/<city-slug>.<lang>.ics`:
+Browse available cities and languages, filter by city or autonomous
+community, and subscribe directly: **[cbonnin96.github.io/spanish-local-holidays-calendar](https://cbonnin96.github.io/spanish-local-holidays-calendar/)**
+(once GitHub Pages is enabled for this repo — Settings → Pages → branch
+`main`, folder `/docs`). Each language has a "Subscribe" link
+(`webcal://`, opens your calendar app directly) and a plain `.ics` URL if
+you'd rather add it manually — see that page for exact steps.
 
-| City | Language | URL |
-|------|----------|-----|
-| Palma | Español (ES) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.es.ics` |
-| Palma | Català (CA) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/illes-balears/palma.ca.ics` |
-| Barcelona | Español (ES) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.es.ics` |
-| Barcelona | Català (CA) | `https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/catalunya/barcelona.ca.ics` |
-
-Add the URL in your calendar app as a subscription (not a one-time import):
-Google Calendar → "Other calendars" → "From URL"; Apple Calendar → File →
-"New Calendar Subscription". The file is kept current by a scheduled GitHub
-Action (see below), so your calendar app will pick up changes automatically.
-
-The table above is maintained by hand; [`output/index.json`](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/index.json)
-is the generated, always-current source of truth — every `(city, region,
-locale)` combination that's actually live right now, each with its `path`
-and full `url`. This is what scales past a hand-maintained table once
-there are many cities: read the index, don't guess the filename.
-
-### Browse
-
-[`docs/index.html`](docs/index.html) renders that same index as a page —
-browse cities/languages without reading JSON, filter by city name or
-autonomous community, and each language's "Subscribe" link uses
-`webcal://` to open your calendar app directly. It's static with no build
-step: it fetches `index.json` client-side (filter options included), so
-it's never out of date. Published via GitHub Pages at
-`https://cbonnin96.github.io/spanish-local-holidays-calendar/` once Pages
-is enabled for this repo (Settings → Pages → branch `main`, folder
-`/docs`) — purely a convenience on top of the raw URLs above, which keep
-working either way.
+That page ([`docs/index.html`](docs/index.html)) is static with no build
+step: it fetches [`output/index.json`](https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/index.json)
+client-side — the generated, always-current list of every `(city, region,
+locale)` combination that's actually live, each with its `path` and full
+`url` — so it can't drift from what's actually published. Read that JSON
+directly if you want the data instead of the page.
 
 ## Why
 
@@ -57,23 +30,13 @@ fix that: pick your city once, subscribe to one calendar URL, and get every holi
 that applies to you — no manual merging of three different sources, no missing the
 one local "fiesta" day your city adds on top of the national/regional ones.
 
-## Non-goals
-
-- No city picker or search UI — cities are added to the registry one at a
-  time, not chosen by visitors.
-- Not a general-purpose events calendar (concerts, festivals without an
-  associated day off, etc.) — only actual holidays/non-working days.
-- No UI beyond the single static browsing page (see "Browse" above) — no
-  search backend, no server-rendered content, the deliverable is the feed
-  itself.
-
 ## Shape
 
 1. **Region source** — fetches and parses each region's own official source
    for the current and next year (when published), extracting both the
-   general/regional holiday list and the city's local holidays. See
-   "Implemented cities" above for each city's actual source, and "Adding a
-   new region" below for how a region plugs in.
+   general/regional holiday list and the city's local holidays. See the
+   browsable index above for current coverage, and "How to add a new
+   region or city" below for how a region plugs in.
 2. **Feed generator** — turns the scraped holidays into a valid `.ics` file.
 3. **Automation** — a scheduled GitHub Action re-runs the scraper + generator
    monthly (and on demand), committing the generated `.ics` files back to the
@@ -93,33 +56,39 @@ historical years, by design.
 month (and on manual trigger) by a GitHub Action, committed back to the
 repo, and served from their raw.githubusercontent.com URLs — no server to
 run, and holiday data changes rarely enough that monthly regeneration is
-plenty fresh. The optional GitHub Pages browsing page (see "Browse" above)
-doesn't change this: it's a static client-side view of the same committed
-files, not a second source of truth.
+plenty fresh. The optional GitHub Pages browsing page (see "Subscribe"
+above) doesn't change this: it's a static client-side view of the same
+committed files, not a second source of truth.
 
-**Adding a new region:** every autonomous community publishes its own
-official calendar in its own format, so a new region means a new source
-module, not a config tweak. `region_source.py` defines the `RegionSource`
-protocol any such module must satisfy — a `SUPPORTED_LOCALES` set and a
-`fetch_holidays(year, municipality, locale)` function returning holidays
-or `None` if that year isn't published yet — and doesn't need to be a
-class, just a module shaped the same way. `region_sources.json` maps each
-region name to its source module's dotted import path — `load_region_sources()`
-imports each one and checks it against `RegionSource`, so a misconfigured
-entry fails loudly at startup instead of with a confusing error deep in the
-pipeline. Adding a city from an already-registered region is a `cities.json`
-change; adding a city from a new region means writing that region's own
-source module and adding one line to `region_sources.json`.
+## How to add a new region or city
 
-Catalonia's source (`catalonia_source.py`) is a different shape entirely
-from the Balearics' HTML scrape — it's the Generalitat's official open data
-portal, queried as JSON. It has no holiday *name* field at all: regional
-holidays are named via a lookup of Catalonia's known fixed dates (the two
-Easter-relative ones computed from Easter Sunday, since they move every
-year), and local holidays are always given a generic translated name
-("Festa local"/"Fiesta local") since the source's own "festiu" text field
-turned out to contain leftover test/junk entries and isn't trustworthy as
-a display name.
+**Adding a city in an already-registered region** is just a `cities.json`
+change — add an entry with the municipality, region, and source URL, and
+the next run picks it up. No code changes.
+
+**Adding a new region** means writing that region's own source module:
+every autonomous community publishes its own official calendar in its own
+format, so there's no shared scraper to parameterize. `region_source.py`
+defines the `RegionSource` protocol any such module must satisfy — a
+`SUPPORTED_LOCALES` set and a `fetch_holidays(year, municipality,
+locale)` function returning holidays or `None` if that year isn't
+published yet — and it doesn't need to be a class, just a module shaped
+the same way. Then add one line to `region_sources.json` mapping the
+region's name to that module's dotted import path —
+`load_region_sources()` imports each one and checks it against
+`RegionSource`, so a misconfigured entry fails loudly at startup instead
+of with a confusing error deep in the pipeline.
+
+Catalonia's source (`catalonia_source.py`) is a useful second data point
+before writing a third: it's a different shape entirely from the
+Balearics' HTML scrape (`scraper.py`) — the Generalitat's official open
+data portal, queried as JSON. It has no holiday *name* field at all:
+regional holidays are named via a lookup of Catalonia's known fixed dates
+(the two Easter-relative ones computed from Easter Sunday, since they
+move every year), and local holidays are always given a generic
+translated name ("Festa local"/"Fiesta local") since the source's own
+"festiu" text field turned out to contain leftover test/junk entries and
+isn't trustworthy as a display name.
 
 ## Project structure
 
