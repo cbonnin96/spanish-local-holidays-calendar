@@ -100,26 +100,53 @@ def parse_regional_holidays(html: str, year: int, source_url: str) -> list[Holid
     return holidays
 
 
-def parse_local_holidays(html: str, year: int, municipality: str, source_url: str) -> list[Holiday]:
-    """Parse the local-holidays table for a single municipality.
+def _is_single_entry_heading(heading_cell, strong) -> bool:
+    """Whether a local-holidays heading cell names one municipality with no
+    sub-localities.
 
-    Only handles municipalities listed as a single entry (no sub-localities),
-    which covers Palma. Municipalities split into several localities (e.g.
-    Andratx / Port d'Andratx / s'Arracó) are not disambiguated by this parser.
+    A single-entry cell is just `<strong>NAME</strong>` (CAIB formats this
+    inconsistently -- sometimes wrapped in a `<p>`, sometimes followed by
+    bare `<br>`s -- but either way there's no other text). A split cell
+    (e.g. Andratx / Port d'Andratx / s'Arracó) lists each sub-locality as
+    its own line alongside the `<strong>` name, which this detects by
+    checking for any text in the cell outside the `<strong>` tag itself
+    (ignoring `&nbsp;` spacer text).
+    """
+    extra_text = "".join(
+        str(node) for node in heading_cell.find_all(string=True) if node.find_parent("strong") is not strong
+    )
+    return extra_text.replace("\xa0", "").strip() == ""
+
+
+def parse_local_holidays(html: str, year: int, source_url: str) -> dict[str, list[Holiday]]:
+    """Parse the local-holidays table, returning every single-entry
+    municipality's holidays keyed by municipality name (as published,
+    upper-case).
+
+    Only municipalities listed as a single entry (no sub-localities) are
+    included -- this covers the large majority of Balearic municipalities.
+    Municipalities split into several localities (e.g. Andratx / Port
+    d'Andratx / s'Arracó) are intentionally excluded rather than
+    disambiguated; see https://github.com/cbonnin96/spanish-local-holidays-calendar/issues/12.
     """
     soup = BeautifulSoup(html, "lxml")
-    target = municipality.strip().upper()
-    holidays: list[Holiday] = []
+    holidays_by_municipality: dict[str, list[Holiday]] = {}
     for row in soup.find_all("tr"):
         cells = row.find_all("td")
         if len(cells) != 2:
             continue
         heading_cell, data_cell = cells
         strong = heading_cell.find("strong")
-        if not strong or strong.get_text(strip=True).upper() != target:
+        if not strong or not _is_single_entry_heading(heading_cell, strong):
             continue
-        for paragraph in data_cell.find_all("p"):
-            text = paragraph.get_text(strip=True)
+        municipality = strong.get_text(strip=True).upper()
+        holidays: list[Holiday] = []
+        # One holiday per line, but CAIB doesn't consistently wrap each in
+        # its own <p> -- sometimes a second line is bare text after a <br>
+        # (e.g. Sineu's "dia previ" entry) -- so split on text-node
+        # boundaries rather than just iterating <p> tags.
+        for line in data_cell.get_text(separator="\n").split("\n"):
+            text = line.strip()
             if not text:
                 continue
             holiday_date = _parse_date(text, year)
@@ -127,8 +154,9 @@ def parse_local_holidays(html: str, year: int, municipality: str, source_url: st
                 continue
             name = text.split(":", 1)[1].strip() if ":" in text else municipality.title()
             holidays.append(Holiday(date=holiday_date, name=name, scope="local", source_url=source_url))
-        break
-    return holidays
+        if holidays:
+            holidays_by_municipality[municipality] = holidays
+    return holidays_by_municipality
 
 
 def fetch_holidays(year: int, municipality: str = "PALMA", locale: str = "ca") -> list[Holiday] | None:
@@ -142,5 +170,6 @@ def fetch_holidays(year: int, municipality: str = "PALMA", locale: str = "ca") -
         return None
     source_url = BASE_URL.format(locale=locale, year=year)
     holidays = parse_regional_holidays(html, year, source_url)
-    holidays += parse_local_holidays(html, year, municipality, source_url)
+    local_holidays = parse_local_holidays(html, year, source_url)
+    holidays += local_holidays.get(municipality.strip().upper(), [])
     return sorted(holidays, key=lambda holiday: holiday.date)

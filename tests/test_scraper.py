@@ -3,6 +3,7 @@ from pathlib import Path
 
 from spanish_local_holidays_calendar.scraper import (
     SUPPORTED_LOCALES,
+    fetch_holidays,
     fetch_page,
     parse_local_holidays,
     parse_regional_holidays,
@@ -25,23 +26,65 @@ def test_parse_regional_holidays_extracts_general_list():
     assert national_day.date == date(2026, 10, 12)
 
 
-def test_parse_local_holidays_matches_only_target_municipality():
+def test_parse_local_holidays_covers_every_single_entry_municipality():
+    """Acceptance criterion for #11: the parser discovers every single-entry
+    municipality on the page, not just a hardcoded target -- Palma, Muro and
+    Petra (ordinary `<p>` heading) and Campos (bare `<strong>` + `<br>`
+    heading, no wrapping `<p>`) must all come back with correct holidays."""
     html = FIXTURE.read_text(encoding="utf-8")
-    holidays = parse_local_holidays(html, 2026, "PALMA", SOURCE_URL)
+    holidays_by_municipality = parse_local_holidays(html, 2026, SOURCE_URL)
 
-    assert len(holidays) == 2
-    assert {h.name for h in holidays} == {"Sant Sebastià", "Sant Joan"}
-    assert all(h.scope == "local" for h in holidays)
+    assert set(holidays_by_municipality) >= {"PALMA", "MURO", "PETRA", "CAMPOS", "SINEU"}
 
-    sant_sebastia = next(h for h in holidays if h.name == "Sant Sebastià")
+    palma = holidays_by_municipality["PALMA"]
+    assert len(palma) == 2
+    assert {h.name for h in palma} == {"Sant Sebastià", "Sant Joan"}
+    assert all(h.scope == "local" for h in palma)
+
+    sant_sebastia = next(h for h in palma if h.name == "Sant Sebastià")
     assert sant_sebastia.date == date(2026, 1, 20)
 
+    campos = holidays_by_municipality["CAMPOS"]
+    assert {h.name for h in campos} == {"Sant Julià i Santa Basilissa", "Sa Fira"}
+    sa_fira = next(h for h in campos if h.name == "Sa Fira")
+    assert sa_fira.date == date(2026, 10, 22)
 
-def test_parse_local_holidays_unknown_municipality_returns_empty():
+
+def test_parse_local_holidays_catches_holiday_lines_not_wrapped_in_their_own_p_tag():
+    """Real CAIB pages aren't consistent about wrapping each holiday line in
+    its own <p> -- Sineu's second holiday is bare text after a <br> inside
+    the same cell as the first <p>. Relying on find_all("p") alone would
+    silently drop it."""
     html = FIXTURE.read_text(encoding="utf-8")
-    holidays = parse_local_holidays(html, 2026, "NOT-A-REAL-TOWN", SOURCE_URL)
+    holidays_by_municipality = parse_local_holidays(html, 2026, SOURCE_URL)
 
-    assert holidays == []
+    sineu = holidays_by_municipality["SINEU"]
+    assert {h.name for h in sineu} == {"Sant Marc", "Assumpció de la Mare de Déu (dia previ)"}
+    assumpcio = next(h for h in sineu if h.name.startswith("Assumpció"))
+    assert assumpcio.date == date(2026, 8, 14)
+
+
+def test_parse_local_holidays_excludes_split_municipality():
+    """Acceptance criterion for #11: split/sub-locality municipalities (e.g.
+    Andratx / Port d'Andratx / s'Arracó) are out of scope here and must be
+    excluded entirely, not parsed into garbage data. See follow-up #12."""
+    html = FIXTURE.read_text(encoding="utf-8")
+    holidays_by_municipality = parse_local_holidays(html, 2026, SOURCE_URL)
+
+    assert "ANDRATX" not in holidays_by_municipality
+
+
+def test_fetch_holidays_works_for_a_single_entry_municipality_beyond_palma(monkeypatch):
+    """Acceptance criterion for #11: fetching by municipality name isn't
+    special-cased to Palma -- any single-entry municipality works."""
+    html = FIXTURE.read_text(encoding="utf-8")
+    monkeypatch.setattr("spanish_local_holidays_calendar.scraper.fetch_page", lambda year, locale: html)
+
+    holidays = fetch_holidays(2026, municipality="CAMPOS", locale="ca")
+
+    local_names = {h.name for h in holidays if h.scope == "local"}
+    assert local_names == {"Sant Julià i Santa Basilissa", "Sa Fira"}
+    assert {h.name for h in holidays if h.scope == "regional"} == {"Cap d'Any", "Festa Nacional", "Dia de Nadal"}
 
 
 def test_parse_regional_holidays_extracts_general_list_es():
@@ -57,14 +100,16 @@ def test_parse_regional_holidays_extracts_general_list_es():
 
 def test_parse_local_holidays_matches_only_target_municipality_es():
     html = FIXTURE_ES.read_text(encoding="utf-8")
-    holidays = parse_local_holidays(html, 2026, "PALMA", SOURCE_URL)
+    holidays_by_municipality = parse_local_holidays(html, 2026, SOURCE_URL)
+    palma = holidays_by_municipality["PALMA"]
 
-    assert len(holidays) == 2
-    assert {h.name for h in holidays} == {"San Sebastián", "San Juan"}
-    assert all(h.scope == "local" for h in holidays)
+    assert len(palma) == 2
+    assert {h.name for h in palma} == {"San Sebastián", "San Juan"}
+    assert all(h.scope == "local" for h in palma)
 
-    san_sebastian = next(h for h in holidays if h.name == "San Sebastián")
+    san_sebastian = next(h for h in palma if h.name == "San Sebastián")
     assert san_sebastian.date == date(2026, 1, 20)
+    assert "ANDRATX" not in holidays_by_municipality
 
 
 def test_fetch_page_builds_locale_specific_url(monkeypatch):
