@@ -103,9 +103,13 @@ spanish-local-holidays-calendar/
 │   │   ├── locales.py / locales.json            # LocaleConfig + load_locales()
 │   │   └── region_sources.py / region_sources.json  # load_region_sources()
 │   └── sources/           # how to get the data: the RegionSource protocol + each region's own implementation
-│       ├── base.py            # RegionSource protocol
-│       ├── illes_balears.py   # Balearics/CAIB source: HTML scrape
-│       └── catalunya.py       # Catalonia source: Generalitat open data API
+│       ├── base.py                    # RegionSource protocol
+│       ├── illes_balears/             # Balearics/CAIB source: HTML scrape
+│       │   ├── __init__.py
+│       │   └── README.md              # CAIB-specific quirks
+│       └── catalunya/                 # Catalonia source: Generalitat open data API
+│           ├── __init__.py
+│           └── README.md              # Catalunya-specific quirks
 ├── tests/                 # mirrors the package structure above
 │   ├── registry/
 │   │   ├── test_cities.py, test_locales.py, test_region_sources.py
