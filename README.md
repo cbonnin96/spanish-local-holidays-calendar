@@ -34,6 +34,18 @@ locale)` combination that's actually live right now, each with its `path`
 and full `url`. This is what scales past a hand-maintained table once
 there are many cities: read the index, don't guess the filename.
 
+### Browse
+
+[`docs/index.html`](docs/index.html) renders that same index as a page —
+browse cities/languages without reading JSON, and each language's
+"Subscribe" link uses `webcal://` to open your calendar app directly. It's
+static with no build step: it fetches `index.json` client-side, so it's
+never out of date. Published via GitHub Pages at
+`https://cbonnin96.github.io/spanish-local-holidays-calendar/` once Pages
+is enabled for this repo (Settings → Pages → branch `main`, folder
+`/docs`) — purely a convenience on top of the raw URLs above, which keep
+working either way.
+
 ## Why
 
 Most holiday calendars only cover national public holidays. In countries with
@@ -50,8 +62,9 @@ one local "fiesta" day your city adds on top of the national/regional ones.
   time, not chosen by visitors.
 - Not a general-purpose events calendar (concerts, festivals without an
   associated day off, etc.) — only actual holidays/non-working days.
-- No UI beyond maybe a single static page with the subscription links and
-  instructions — the deliverable is the feed itself.
+- No UI beyond the single static browsing page (see "Browse" above) — no
+  search backend, no server-rendered content, the deliverable is the feed
+  itself.
 
 ## Shape
 
@@ -78,8 +91,10 @@ historical years, by design.
 **Hosting model:** static `.ics` files, regenerated on the 1st of every
 month (and on manual trigger) by a GitHub Action, committed back to the
 repo, and served from their raw.githubusercontent.com URLs — no server to
-run, no GitHub Pages setup needed, and holiday data changes rarely enough
-that monthly regeneration is plenty fresh.
+run, and holiday data changes rarely enough that monthly regeneration is
+plenty fresh. The optional GitHub Pages browsing page (see "Browse" above)
+doesn't change this: it's a static client-side view of the same committed
+files, not a second source of truth.
 
 **Adding a new region:** every autonomous community publishes its own
 official calendar in its own format, so a new region means a new source
@@ -137,6 +152,8 @@ spanish-local-holidays-calendar/
 │   ├── test_generate_ics.py
 │   └── test_main.py
 ├── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
+├── docs/
+│   └── index.html              # browsable index, published via GitHub Pages
 └── output/                        # generated artifacts, committed (this is what's served)
     ├── index.json                  # generated: every live (city, region, locale) + its url
     ├── illes-balears/
