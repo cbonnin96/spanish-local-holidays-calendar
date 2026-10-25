@@ -1,6 +1,6 @@
 import json
 
-from spanish_local_holidays_calendar.cities import CityConfig, load_cities
+from spanish_local_holidays_calendar.registry.cities import CityConfig, load_cities
 
 
 def test_load_cities_parses_the_real_registry():
