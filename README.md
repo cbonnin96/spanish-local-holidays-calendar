@@ -154,10 +154,12 @@ make generate   # fetch every registered city's holidays, write output/<region-s
 make test       # run the test suite inside the container
 ```
 
-**Balearics/CAIB-specific notes:** the scraper is scoped to municipalities
-listed as a single entry (no sub-localities) — this covers Palma, but not
-municipalities split into several localities (e.g. Andratx / Port d'Andratx
-/ s'Arracó), which the parser doesn't disambiguate. The source also doesn't
+**Balearics/CAIB-specific notes:** the scraper discovers every municipality
+listed on the page as a single entry (no sub-localities) — covering 48 of
+the Balearics' 67 municipalities, Palma among them — but not municipalities
+split into several localities (e.g. Andratx / Port d'Andratx / s'Arracó),
+which the parser doesn't disambiguate and intentionally excludes rather
+than guess at. The source also doesn't
 separate national from regional holidays — its "general Illes Balears" list
 already folds Spain's national holidays (New Year, National Day, Christmas,
 etc.) in with the Balearics' own additions (e.g. Dia de les Illes Balears).
