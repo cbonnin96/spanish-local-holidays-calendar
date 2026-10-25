@@ -62,6 +62,21 @@
   }
   .links a:hover { background: var(--accent); color: var(--bg); }
   .raw-link { opacity: 0.7; }
+  .filters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+  }
+  .filters input, .filters select {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card-bg);
+    color: var(--fg);
+  }
+  .filters input { flex: 1 1 auto; min-width: 10rem; }
   details { margin-top: 2rem; color: var(--muted); font-size: 0.9rem; }
   #status { color: var(--muted); margin-top: 2rem; }
   footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; }
@@ -77,6 +92,13 @@
     calendar app directly; "raw .ics" is the plain URL if you'd rather
     paste it in yourself.
   </p>
+
+  <div class="filters">
+    <input type="search" id="city-filter" placeholder="Search by city…" aria-label="Search by city" disabled>
+    <select id="region-filter" aria-label="Filter by autonomous community" disabled>
+      <option value="">All autonomous communities</option>
+    </select>
+  </div>
 
   <div id="listing"></div>
   <p id="status">Loading available cities…</p>
@@ -120,14 +142,43 @@
     return regions;
   }
 
-  function render(entries) {
+  function populateRegionFilter(entries) {
+    const select = document.getElementById("region-filter");
+    const regions = [...new Set(entries.map((e) => e.region))].sort();
+    for (const region of regions) {
+      const option = document.createElement("option");
+      option.value = region;
+      option.textContent = region;
+      select.appendChild(option);
+    }
+  }
+
+  function applyFilters(entries) {
+    const cityQuery = document.getElementById("city-filter").value.trim().toLowerCase();
+    const region = document.getElementById("region-filter").value;
+    return entries.filter(
+      (e) =>
+        (!region || e.region === region) &&
+        (!cityQuery || e.city.toLowerCase().includes(cityQuery))
+    );
+  }
+
+  function render(entries, allEntries) {
     const listing = document.getElementById("listing");
     const status = document.getElementById("status");
+    listing.innerHTML = "";
 
-    if (entries.length === 0) {
+    if (allEntries.length === 0) {
       status.textContent = "No cities are published yet.";
+      status.style.display = "";
       return;
     }
+    if (entries.length === 0) {
+      status.textContent = "No cities match those filters.";
+      status.style.display = "";
+      return;
+    }
+    status.style.display = "none";
 
     const regions = groupByRegionThenCity(entries);
     for (const [region, cities] of regions) {
@@ -169,8 +220,6 @@
 
       listing.appendChild(section);
     }
-
-    status.remove();
   }
 
   fetch(INDEX_URL)
@@ -178,7 +227,18 @@
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
       return response.json();
     })
-    .then(render)
+    .then((entries) => {
+      populateRegionFilter(entries);
+      render(applyFilters(entries), entries);
+
+      const cityFilter = document.getElementById("city-filter");
+      const regionFilter = document.getElementById("region-filter");
+      cityFilter.disabled = false;
+      regionFilter.disabled = false;
+      const rerender = () => render(applyFilters(entries), entries);
+      cityFilter.addEventListener("input", rerender);
+      regionFilter.addEventListener("change", rerender);
+    })
     .catch((error) => {
       document.getElementById("status").textContent =
         `Couldn't load the city index (${error.message}). Try the raw feed list directly: ` + INDEX_URL;

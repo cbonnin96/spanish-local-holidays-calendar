@@ -37,10 +37,11 @@ there are many cities: read the index, don't guess the filename.
 ### Browse
 
 [`docs/index.html`](docs/index.html) renders that same index as a page —
-browse cities/languages without reading JSON, and each language's
-"Subscribe" link uses `webcal://` to open your calendar app directly. It's
-static with no build step: it fetches `index.json` client-side, so it's
-never out of date. Published via GitHub Pages at
+browse cities/languages without reading JSON, filter by city name or
+autonomous community, and each language's "Subscribe" link uses
+`webcal://` to open your calendar app directly. It's static with no build
+step: it fetches `index.json` client-side (filter options included), so
+it's never out of date. Published via GitHub Pages at
 `https://cbonnin96.github.io/spanish-local-holidays-calendar/` once Pages
 is enabled for this repo (Settings → Pages → branch `main`, folder
 `/docs`) — purely a convenience on top of the raw URLs above, which keep
