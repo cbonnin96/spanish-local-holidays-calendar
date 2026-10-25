@@ -28,10 +28,8 @@ def test_parse_regional_holidays_extracts_general_list():
 
 
 def test_parse_local_holidays_covers_every_single_entry_municipality():
-    """Acceptance criterion for #11: the parser discovers every single-entry
-    municipality on the page, not just a hardcoded target -- Palma, Muro and
-    Petra (ordinary `<p>` heading) and Campos (bare `<strong>` + `<br>`
-    heading, no wrapping `<p>`) must all come back with correct holidays."""
+    """Covers both heading styles CAIB uses: ordinary `<p>` (Palma, Muro,
+    Petra) and bare `<strong>` + `<br>`, no wrapping `<p>` (Campos)."""
     html = FIXTURE.read_text(encoding="utf-8")
     holidays_by_municipality = parse_local_holidays(html, 2026, SOURCE_URL)
 
@@ -52,10 +50,7 @@ def test_parse_local_holidays_covers_every_single_entry_municipality():
 
 
 def test_parse_local_holidays_catches_holiday_lines_not_wrapped_in_their_own_p_tag():
-    """Real CAIB pages aren't consistent about wrapping each holiday line in
-    its own <p> -- Sineu's second holiday is bare text after a <br> inside
-    the same cell as the first <p>. Relying on find_all("p") alone would
-    silently drop it."""
+    """Sineu's second holiday is bare text after a <br>, not its own <p>."""
     html = FIXTURE.read_text(encoding="utf-8")
     holidays_by_municipality = parse_local_holidays(html, 2026, SOURCE_URL)
 
@@ -66,9 +61,6 @@ def test_parse_local_holidays_catches_holiday_lines_not_wrapped_in_their_own_p_t
 
 
 def test_parse_local_holidays_excludes_split_municipality():
-    """Acceptance criterion for #11: split/sub-locality municipalities (e.g.
-    Andratx / Port d'Andratx / s'Arracó) are out of scope here and must be
-    excluded entirely, not parsed into garbage data. See follow-up #12."""
     html = FIXTURE.read_text(encoding="utf-8")
     holidays_by_municipality = parse_local_holidays(html, 2026, SOURCE_URL)
 
@@ -76,9 +68,6 @@ def test_parse_local_holidays_excludes_split_municipality():
 
 
 def test_parse_split_local_holidays_attributes_each_sub_locality_correctly():
-    """Acceptance criterion for #12: Andratx's three sub-localities (Andratx,
-    Port d'Andratx, s'Arracó) are each correctly attributed their own
-    holidays, not merged or misattributed to the wrong sub-locality."""
     html = FIXTURE.read_text(encoding="utf-8")
     holidays_by_sub_locality = parse_split_local_holidays(html, 2026, SOURCE_URL)
 
@@ -93,17 +82,14 @@ def test_parse_split_local_holidays_attributes_each_sub_locality_correctly():
     agusti = next(h for h in arraco if h.name == "Sant Agustí")
     assert agusti.date == date(2026, 8, 28)
 
-    # all three sub-localities share the municipality-wide Dec 7 bridge day,
-    # unnamed in the source -- each still gets its own Holiday for it.
+    # shared Dec 7 bridge day, unnamed in the source, attributed to all three
     for sub_locality in ("ANDRATX", "PORT D'ANDRATX", "S'ARRACÓ"):
         assert any(h.date == date(2026, 12, 7) for h in holidays_by_sub_locality[sub_locality])
 
 
 def test_parse_split_local_holidays_skips_ambiguous_grouped_sub_localities():
-    """Acceptance criterion for #12: when a split municipality's heading and
-    data lines don't line up cleanly (Sant Josep de sa Talaia groups several
-    place names under each heading entry instead of listing them one-by-one,
-    so pairing would be a guess), it's skipped rather than misattributed."""
+    """Sant Josep de sa Talaia groups several place names per heading entry,
+    so pairing would be a guess -- it's skipped instead."""
     html = FIXTURE.read_text(encoding="utf-8")
     holidays_by_sub_locality = parse_split_local_holidays(html, 2026, SOURCE_URL)
 
@@ -111,8 +97,6 @@ def test_parse_split_local_holidays_skips_ambiguous_grouped_sub_localities():
 
 
 def test_fetch_holidays_resolves_a_sub_locality_by_name(monkeypatch):
-    """Acceptance criterion for #12: a sub-locality can be fetched by name,
-    just like any single-entry municipality."""
     html = FIXTURE.read_text(encoding="utf-8")
     monkeypatch.setattr("spanish_local_holidays_calendar.scraper.fetch_page", lambda year, locale: html)
 
@@ -123,8 +107,6 @@ def test_fetch_holidays_resolves_a_sub_locality_by_name(monkeypatch):
 
 
 def test_fetch_holidays_works_for_a_single_entry_municipality_beyond_palma(monkeypatch):
-    """Acceptance criterion for #11: fetching by municipality name isn't
-    special-cased to Palma -- any single-entry municipality works."""
     html = FIXTURE.read_text(encoding="utf-8")
     monkeypatch.setattr("spanish_local_holidays_calendar.scraper.fetch_page", lambda year, locale: html)
 
