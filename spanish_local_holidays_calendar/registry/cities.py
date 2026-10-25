@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
+
+from ._json import read_json
 
 CITIES_FILE = Path(__file__).parent / "cities.json"
 
@@ -20,5 +21,4 @@ def load_cities(path: Path = CITIES_FILE) -> list[CityConfig]:
     informational -- all registered cities share the single CAIB scraper for
     now; per-region sources are future work, see epic for multi-region support).
     """
-    entries = json.loads(path.read_text(encoding="utf-8"))
-    return [CityConfig(**entry) for entry in entries]
+    return [CityConfig(**entry) for entry in read_json(path)]
