@@ -60,27 +60,29 @@ committed files, not a second source of truth.
 
 ## How to add a new region or city
 
-**Adding a city in an already-registered region** is just a `cities.json`
-change — add an entry with the municipality, region, and source URL, and
-the next run picks it up. No code changes.
+**Adding a city in an already-registered region** is just a
+`registry/cities.json` change — add an entry with the municipality,
+region, and source URL, and the next run picks it up. No code changes.
 
-**Adding a new region** means writing that region's own source module:
-every autonomous community publishes its own official calendar in its own
-format, so there's no shared scraper to parameterize. `region_source.py`
-defines the `RegionSource` protocol any such module must satisfy — a
-`SUPPORTED_LOCALES` set and a `fetch_holidays(year, municipality,
-locale)` function returning holidays or `None` if that year isn't
-published yet — and it doesn't need to be a class, just a module shaped
-the same way. Then add one line to `region_sources.json` mapping the
-region's name to that module's dotted import path —
-`load_region_sources()` imports each one and checks it against
-`RegionSource`, so a misconfigured entry fails loudly at startup instead
-of with a confusing error deep in the pipeline.
+**Adding a new region** means writing that region's own source module
+under `sources/`: every autonomous community publishes its own official
+calendar in its own format, so there's no shared scraper to parameterize.
+`sources/base.py` defines the `RegionSource` protocol any such module
+must satisfy — a `SUPPORTED_LOCALES` set and a `fetch_holidays(year,
+municipality, locale)` function returning holidays or `None` if that
+year isn't published yet — and it doesn't need to be a class, just a
+module shaped the same way. Then add one line to
+`registry/region_sources.json` mapping the region's name to that
+module's dotted import path — `load_region_sources()` imports each one
+and checks it against `RegionSource`, so a misconfigured entry fails
+loudly at startup instead of with a confusing error deep in the
+pipeline.
 
-Catalonia's source (`catalonia_source.py`) is a useful second data point
+Catalonia's source (`sources/catalunya.py`) is a useful second data point
 before writing a third: it's a different shape entirely from the
-Balearics' HTML scrape (`scraper.py`) — the Generalitat's official open
-data portal, queried as JSON. It has no holiday *name* field at all:
+Balearics' HTML scrape (`sources/illes_balears.py`) — the Generalitat's
+official open data portal, queried as JSON. It has no holiday *name*
+field at all:
 regional holidays are named via a lookup of Catalonia's known fixed dates
 (the two Easter-relative ones computed from Easter Sunday, since they
 move every year), and local holidays are always given a generic
@@ -97,25 +99,24 @@ spanish-local-holidays-calendar/
 ├── requirements.txt
 ├── spanish_local_holidays_calendar/
 │   ├── models.py          # Holiday dataclass (date, name, scope, source_url)
-│   ├── cities.py          # CityConfig + load_cities() -- the city registry
-│   ├── cities.json        # data: which municipalities to generate calendars for
-│   ├── locales.py         # LocaleConfig + load_locales() -- per-locale display strings
-│   ├── locales.json       # data: supported locales and their calendar name templates
-│   ├── region_source.py   # RegionSource protocol + load_region_sources()
-│   ├── region_sources.json # data: region name -> source module's dotted import path
-│   ├── scraper.py             # Balearics/CAIB source: HTML scrape
-│   ├── catalonia_source.py    # Catalonia source: Generalitat open data API
 │   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
 │   ├── slug.py            # slugify() -- region/city display names to path segments
-│   └── __main__.py        # CLI entrypoint: dispatch cities x locales to their RegionSource
-├── tests/
-│   ├── fixtures/aao_2026_sample.html      # trimmed, stable copy of the real CA page structure
-│   ├── fixtures/aao_2026_sample_es.html   # same, for the ES page
-│   ├── test_cities.py
-│   ├── test_locales.py
-│   ├── test_region_source.py
-│   ├── test_scraper.py
-│   ├── test_catalonia_source.py
+│   ├── __main__.py        # CLI entrypoint: dispatch cities x locales to their RegionSource
+│   ├── registry/          # JSON-backed config: what to generate
+│   │   ├── cities.py / cities.json              # CityConfig + load_cities()
+│   │   ├── locales.py / locales.json            # LocaleConfig + load_locales()
+│   │   └── region_sources.py / region_sources.json  # load_region_sources()
+│   └── sources/           # how to get the data: the RegionSource protocol + each region's own implementation
+│       ├── base.py            # RegionSource protocol
+│       ├── illes_balears.py   # Balearics/CAIB source: HTML scrape
+│       └── catalunya.py       # Catalonia source: Generalitat open data API
+├── tests/                 # mirrors the package structure above
+│   ├── registry/
+│   │   ├── test_cities.py, test_locales.py, test_region_sources.py
+│   ├── sources/
+│   │   ├── fixtures/aao_2026_sample.html      # trimmed, stable copy of the real CA page structure
+│   │   ├── fixtures/aao_2026_sample_es.html   # same, for the ES page
+│   │   ├── test_base.py, test_illes_balears.py, test_catalunya.py
 │   ├── test_slug.py
 │   ├── test_generate_ics.py
 │   └── test_main.py
