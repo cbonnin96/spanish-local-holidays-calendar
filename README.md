@@ -30,33 +30,19 @@ one local "fiesta" day your city adds on top of the national/regional ones.
 
 ## Shape
 
-1. **Region source** — fetches and parses each region's own official source
-   for the current and next year (when published), extracting both the
-   general/regional holiday list and the city's local holidays. See the
-   browsable index above for current coverage, and "How to add a new
-   region or city" below for how a region plugs in.
-2. **Feed generator** — turns the scraped holidays into a valid `.ics` file.
-3. **Automation** — a scheduled GitHub Action re-runs the scraper + generator
-   monthly (and on demand), committing the generated `.ics` files back to the
-   repo only when they actually changed. No manual execution needed, on your
-   machine or otherwise.
-4. **Hosting** — the committed `.ics` files are served straight from GitHub's
-   raw content URL (see "Subscribe" above), which is itself stable and
-   auto-updating since the Action keeps it current.
+1. **Region source** — fetches current + next year's regional and local
+   holidays (when published) from each region's own official source. See
+   "How to add a new region or city" below.
+2. **Feed generator** — turns those holidays into a valid `.ics` file.
+3. **Automation** — a monthly GitHub Action re-runs steps 1–2 and commits
+   the result, only when it actually changed.
+4. **Hosting** — the committed `.ics` files are served directly from
+   GitHub's raw content URLs. No server to run.
 
-Implemented in Python, running inside Docker for local development; CI runs
-natively on the GitHub Actions runner (no Docker build needed there).
-
-**Years covered:** current + next year, when published by the source. No
-historical years, by design.
-
-**Hosting model:** static `.ics` files, regenerated on the 1st of every
-month (and on manual trigger) by a GitHub Action, committed back to the
-repo, and served from their raw.githubusercontent.com URLs — no server to
-run, and holiday data changes rarely enough that monthly regeneration is
-plenty fresh. The optional GitHub Pages browsing page (see "Subscribe"
-above) doesn't change this: it's a static client-side view of the same
-committed files, not a second source of truth.
+Python, Dockerized for local dev; CI runs natively on the GitHub Actions
+runner. No historical years — only what each source currently publishes.
+The GitHub Pages page (see "Subscribe" above) is just a static client-side
+view over these same committed files, not a second source of truth.
 
 ## How to add a new region or city
 
