@@ -30,109 +30,52 @@ one local "fiesta" day your city adds on top of the national/regional ones.
 
 ## Shape
 
-1. **Region source** — fetches and parses each region's own official source
-   for the current and next year (when published), extracting both the
-   general/regional holiday list and the city's local holidays. See the
-   browsable index above for current coverage, and "How to add a new
-   region or city" below for how a region plugs in.
-2. **Feed generator** — turns the scraped holidays into a valid `.ics` file.
-3. **Automation** — a scheduled GitHub Action re-runs the scraper + generator
-   monthly (and on demand), committing the generated `.ics` files back to the
-   repo only when they actually changed. No manual execution needed, on your
-   machine or otherwise.
-4. **Hosting** — the committed `.ics` files are served straight from GitHub's
-   raw content URL (see "Subscribe" above), which is itself stable and
-   auto-updating since the Action keeps it current.
+1. **Region source** — fetches current + next year's regional and local
+   holidays (when published) from each region's own official source. See
+   "How to add a new region or city" below.
+2. **Feed generator** — turns those holidays into a valid `.ics` file.
+3. **Automation** — a monthly GitHub Action re-runs steps 1–2 and commits
+   the result, only when it actually changed.
+4. **Hosting** — the committed `.ics` files are served directly from
+   GitHub's raw content URLs. No server to run.
 
-Implemented in Python, running inside Docker for local development; CI runs
-natively on the GitHub Actions runner (no Docker build needed there).
-
-**Years covered:** current + next year, when published by the source. No
-historical years, by design.
-
-**Hosting model:** static `.ics` files, regenerated on the 1st of every
-month (and on manual trigger) by a GitHub Action, committed back to the
-repo, and served from their raw.githubusercontent.com URLs — no server to
-run, and holiday data changes rarely enough that monthly regeneration is
-plenty fresh. The optional GitHub Pages browsing page (see "Subscribe"
-above) doesn't change this: it's a static client-side view of the same
-committed files, not a second source of truth.
+Python, Dockerized for local dev; CI runs natively on the GitHub Actions
+runner. No historical years — only what each source currently publishes.
+The GitHub Pages page (see "Subscribe" above) is just a static client-side
+view over these same committed files, not a second source of truth.
 
 ## How to add a new region or city
 
-**Adding a city in an already-registered region** is just a
-`registry/cities.json` change — add an entry with the municipality,
-region, and source URL, and the next run picks it up. No code changes.
+**New city, existing region:** add an entry to `registry/cities.json`. No code changes.
 
-**Adding a new region** means writing that region's own source module
-under `sources/`: every autonomous community publishes its own official
-calendar in its own format, so there's no shared scraper to parameterize.
-`sources/base.py` defines the `RegionSource` protocol any such module
-must satisfy — a `SUPPORTED_LOCALES` set and a `fetch_holidays(year,
-municipality, locale)` function returning holidays or `None` if that
-year isn't published yet — and it doesn't need to be a class, just a
-module shaped the same way. Then add one line to
-`registry/region_sources.json` mapping the region's name to that
-module's dotted import path — `load_region_sources()` imports each one
-and checks it against `RegionSource`, so a misconfigured entry fails
-loudly at startup instead of with a confusing error deep in the
-pipeline.
-
-Each region's own folder under `sources/` has its own README with the
-quirks and tradeoffs specific to that source:
-[`sources/illes_balears/README.md`](spanish_local_holidays_calendar/sources/illes_balears/README.md)
-and
-[`sources/catalunya/README.md`](spanish_local_holidays_calendar/sources/catalunya/README.md)
-— worth reading both before writing a third, as two genuinely different
-data points (one's an HTML scrape, the other's a JSON API).
+**New region:**
+1. Write a module under `sources/` satisfying the `RegionSource` protocol
+   (`sources/base.py`): a `SUPPORTED_LOCALES` set and a
+   `fetch_holidays(year, municipality, locale)` function. A plain module
+   works fine, no class needed.
+2. Register it in `registry/region_sources.json`: `"<region>": "<dotted.module.path>"`.
+3. Check an existing region's README first —
+   [`illes_balears`](spanish_local_holidays_calendar/sources/illes_balears/README.md) (HTML scrape) or
+   [`catalunya`](spanish_local_holidays_calendar/sources/catalunya/README.md) (JSON API) — since
+   each source has its own quirks worth knowing before writing a third.
 
 ## Project structure
 
 ```
 spanish-local-holidays-calendar/
-├── Dockerfile
-├── Makefile
-├── requirements.txt
 ├── spanish_local_holidays_calendar/
-│   ├── models.py          # Holiday dataclass (date, name, scope, source_url)
-│   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
-│   ├── slug.py            # slugify() -- region/city display names to path segments
-│   ├── pipeline.py        # CalendarPipeline: validate registries, generate, write the index
-│   ├── __main__.py        # CLI entrypoint: load the registries, hand them to CalendarPipeline
-│   ├── registry/          # JSON-backed config: what to generate
-│   │   ├── cities.py / cities.json              # CityConfig + load_cities()
-│   │   ├── locales.py / locales.json            # LocaleConfig + load_locales()
-│   │   └── region_sources.py / region_sources.json  # load_region_sources()
-│   └── sources/           # how to get the data: the RegionSource protocol + each region's own implementation
-│       ├── base.py                    # RegionSource protocol
-│       ├── illes_balears/             # Balearics/CAIB source: HTML scrape
-│       │   ├── __init__.py
-│       │   └── README.md              # CAIB-specific quirks
-│       └── catalunya/                 # Catalonia source: Generalitat open data API
-│           ├── __init__.py
-│           └── README.md              # Catalunya-specific quirks
-├── tests/                 # mirrors the package structure above
-│   ├── registry/
-│   │   ├── test_cities.py, test_locales.py, test_region_sources.py
-│   ├── sources/
-│   │   ├── fixtures/aao_2026_sample.html      # trimmed, stable copy of the real CA page structure
-│   │   ├── fixtures/aao_2026_sample_es.html   # same, for the ES page
-│   │   ├── test_base.py, test_illes_balears.py, test_catalunya.py
-│   ├── test_slug.py
-│   ├── test_generate_ics.py
-│   ├── test_pipeline.py   # CalendarPipeline's behavior, constructed directly
-│   └── test_main.py       # smoke test: main() wires the registries into a working pipeline
-├── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
-├── docs/
-│   └── index.html              # browsable index, published via GitHub Pages
-└── output/                        # generated artifacts, committed (this is what's served)
-    ├── index.json                  # generated: every live (city, region, locale) + its url
-    ├── illes-balears/
-    │   ├── palma.es.ics            # one file per (city, locale)
-    │   └── palma.ca.ics
-    └── catalunya/
-        ├── barcelona.es.ics
-        └── barcelona.ca.ics
+│   ├── models.py, generate_ics.py, slug.py, pipeline.py, __main__.py
+│   ├── registry/        # JSON-backed config: what to generate (cities, locales, region_sources)
+│   └── sources/         # how to get the data: the RegionSource protocol + one implementation per region
+│       ├── base.py
+│       ├── illes_balears/   # Balearics/CAIB source: HTML scrape (+ its own README)
+│       └── catalunya/       # Catalonia source: Generalitat open-data API (+ its own README)
+├── tests/                  # mirrors the package structure above
+├── docs/index.html         # browsable subscribe page, published via GitHub Pages
+├── output/                 # generated artifacts, committed -- this is what's served
+│   ├── index.json            # every live (city, region, locale) + its url
+│   └── <region-slug>/<city-slug>.<lang>.ics
+└── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
 ```
 
 **Build/run:**
