@@ -60,31 +60,18 @@ committed files, not a second source of truth.
 
 ## How to add a new region or city
 
-**Adding a city in an already-registered region** is just a
-`registry/cities.json` change — add an entry with the municipality,
-region, and source URL, and the next run picks it up. No code changes.
+**New city, existing region:** add an entry to `registry/cities.json`. No code changes.
 
-**Adding a new region** means writing that region's own source module
-under `sources/`: every autonomous community publishes its own official
-calendar in its own format, so there's no shared scraper to parameterize.
-`sources/base.py` defines the `RegionSource` protocol any such module
-must satisfy — a `SUPPORTED_LOCALES` set and a `fetch_holidays(year,
-municipality, locale)` function returning holidays or `None` if that
-year isn't published yet — and it doesn't need to be a class, just a
-module shaped the same way. Then add one line to
-`registry/region_sources.json` mapping the region's name to that
-module's dotted import path — `load_region_sources()` imports each one
-and checks it against `RegionSource`, so a misconfigured entry fails
-loudly at startup instead of with a confusing error deep in the
-pipeline.
-
-Each region's own folder under `sources/` has its own README with the
-quirks and tradeoffs specific to that source:
-[`sources/illes_balears/README.md`](spanish_local_holidays_calendar/sources/illes_balears/README.md)
-and
-[`sources/catalunya/README.md`](spanish_local_holidays_calendar/sources/catalunya/README.md)
-— worth reading both before writing a third, as two genuinely different
-data points (one's an HTML scrape, the other's a JSON API).
+**New region:**
+1. Write a module under `sources/` satisfying the `RegionSource` protocol
+   (`sources/base.py`): a `SUPPORTED_LOCALES` set and a
+   `fetch_holidays(year, municipality, locale)` function. A plain module
+   works fine, no class needed.
+2. Register it in `registry/region_sources.json`: `"<region>": "<dotted.module.path>"`.
+3. Check an existing region's README first —
+   [`illes_balears`](spanish_local_holidays_calendar/sources/illes_balears/README.md) (HTML scrape) or
+   [`catalunya`](spanish_local_holidays_calendar/sources/catalunya/README.md) (JSON API) — since
+   each source has its own quirks worth knowing before writing a third.
 
 ## Project structure
 
