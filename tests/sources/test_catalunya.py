@@ -1,5 +1,9 @@
 from datetime import date
 
+import pytest
+import requests
+
+from spanish_local_holidays_calendar.sources.base import SourceUnavailableError
 from spanish_local_holidays_calendar.sources.catalunya import (
     LOCAL_DATASET_URL,
     REGIONAL_DATASET_URL,
@@ -133,3 +137,13 @@ def test_fetch_holidays_returns_none_when_year_not_published(monkeypatch):
     )
 
     assert fetch_holidays(2099, "Barcelona", locale="ca") is None
+
+
+def test_fetch_regional_holidays_raises_source_unavailable_on_a_network_failure(monkeypatch):
+    def fake_get(url, params, timeout):
+        raise requests.exceptions.ReadTimeout("read timed out")
+
+    monkeypatch.setattr("spanish_local_holidays_calendar.sources.catalunya.requests.get", fake_get)
+
+    with pytest.raises(SourceUnavailableError):
+        fetch_regional_holidays(2026, locale="ca")

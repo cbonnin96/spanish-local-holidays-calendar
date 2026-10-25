@@ -5,6 +5,7 @@ from spanish_local_holidays_calendar.pipeline import CalendarPipeline
 from spanish_local_holidays_calendar.registry.cities import CityConfig
 from spanish_local_holidays_calendar.registry.locales import LocaleConfig, load_locales
 from spanish_local_holidays_calendar.models import Holiday
+from spanish_local_holidays_calendar.sources.base import SourceUnavailableError
 
 LOCALES = load_locales()
 
@@ -212,6 +213,25 @@ def test_run_fails_loudly_if_a_city_region_has_no_registered_source(tmp_path, ca
     err = capsys.readouterr().err
     assert "Catalunya" in err
     assert "No source registered" in err
+
+
+def test_run_fails_cleanly_when_a_source_is_unreachable(tmp_path, capsys):
+    """A network failure should abort with a clean one-line message, not a
+    raw traceback -- and leave nothing written, same as the other
+    fail-loudly cases."""
+
+    class UnavailableSource(FakeSource):
+        def fetch_holidays(self, year, municipality, locale):
+            raise SourceUnavailableError("read timed out")
+
+    pipeline = _pipeline(tmp_path, cities=[PALMA], region_sources={"Illes Balears": UnavailableSource({})})
+
+    assert pipeline.run() == 1
+    assert list(tmp_path.iterdir()) == []
+
+    err = capsys.readouterr().err
+    assert "Illes Balears" in err
+    assert "read timed out" in err
 
 
 def test_run_fails_loudly_if_locales_registry_outpaces_a_sources_support(tmp_path, capsys):

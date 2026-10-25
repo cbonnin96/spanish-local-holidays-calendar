@@ -1,6 +1,10 @@
 from datetime import date
 from pathlib import Path
 
+import pytest
+import requests
+
+from spanish_local_holidays_calendar.sources.base import SourceUnavailableError
 from spanish_local_holidays_calendar.sources.illes_balears import (
     SUPPORTED_LOCALES,
     fetch_holidays,
@@ -182,3 +186,13 @@ def test_fetch_page_builds_locale_specific_url(monkeypatch):
 
 def test_supported_locales_matches_known_vocabularies():
     assert SUPPORTED_LOCALES == {"es", "ca"}
+
+
+def test_fetch_page_raises_source_unavailable_on_a_network_failure(monkeypatch):
+    def fake_get(url, timeout):
+        raise requests.exceptions.ReadTimeout("read timed out")
+
+    monkeypatch.setattr("spanish_local_holidays_calendar.sources.illes_balears.requests.get", fake_get)
+
+    with pytest.raises(SourceUnavailableError):
+        fetch_page(2026, locale="ca")
