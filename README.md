@@ -78,17 +78,13 @@ and checks it against `RegionSource`, so a misconfigured entry fails
 loudly at startup instead of with a confusing error deep in the
 pipeline.
 
-Catalonia's source (`sources/catalunya.py`) is a useful second data point
-before writing a third: it's a different shape entirely from the
-Balearics' HTML scrape (`sources/illes_balears.py`) — the Generalitat's
-official open data portal, queried as JSON. It has no holiday *name*
-field at all:
-regional holidays are named via a lookup of Catalonia's known fixed dates
-(the two Easter-relative ones computed from Easter Sunday, since they
-move every year), and local holidays are always given a generic
-translated name ("Festa local"/"Fiesta local") since the source's own
-"festiu" text field turned out to contain leftover test/junk entries and
-isn't trustworthy as a display name.
+Each region's own folder under `sources/` has its own README with the
+quirks and tradeoffs specific to that source:
+[`sources/illes_balears/README.md`](spanish_local_holidays_calendar/sources/illes_balears/README.md)
+and
+[`sources/catalunya/README.md`](spanish_local_holidays_calendar/sources/catalunya/README.md)
+— worth reading both before writing a third, as two genuinely different
+data points (one's an HTML scrape, the other's a JSON API).
 
 ## Project structure
 
@@ -139,21 +135,3 @@ make build      # docker build -t spanish-local-holidays-calendar .
 make generate   # fetch every registered city's holidays, write output/<region-slug>/<city-slug>.<lang>.ics
 make test       # run the test suite inside the container
 ```
-
-**Balearics/CAIB-specific notes:** the scraper discovers every municipality
-listed on the page as a single entry (no sub-localities) — 48 of the
-Balearics' 67 municipalities, Palma among them — plus the individual
-sub-localities of municipalities split into several of them (e.g. Andratx /
-Port d'Andratx / s'Arracó), fetchable by sub-locality name just like any
-other municipality. CAIB consistently lines up a split municipality's data
-cell as one shared holiday followed by one sub-locality-specific holiday,
-repeated per sub-locality in the same order as the heading names — but
-where a row doesn't fit that shape (Sant Josep de sa Talaia groups several
-place names under each heading entry instead of listing them one-by-one),
-the pairing would be a guess, so it's skipped rather than risking a
-misattributed holiday. The source also doesn't
-separate national from regional holidays — its "general Illes Balears" list
-already folds Spain's national holidays (New Year, National Day, Christmas,
-etc.) in with the Balearics' own additions (e.g. Dia de les Illes Balears).
-It's tagged `scope: regional` as a whole rather than guessing a split;
-Palma's own holidays are tagged `scope: local`.
