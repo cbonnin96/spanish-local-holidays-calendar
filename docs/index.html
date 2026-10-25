@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spanish Local Holidays Calendar</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --fg: #1a1a1a;
+    --bg: #ffffff;
+    --muted: #666666;
+    --border: #e2e2e2;
+    --accent: #0b5fff;
+    --card-bg: #f7f7f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #e8e8e8;
+      --bg: #141414;
+      --muted: #9a9a9a;
+      --border: #2e2e2e;
+      --accent: #5b9bff;
+      --card-bg: #1d1d1d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1rem 4rem;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  p.lede { color: var(--muted); margin-top: 0; }
+  section.region { margin-top: 2rem; }
+  h2 { font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; }
+  .city {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .city-name { font-weight: 600; }
+  .links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .links a {
+    font-size: 0.85rem;
+    text-decoration: none;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.3rem 0.6rem;
+  }
+  .links a:hover { background: var(--accent); color: var(--bg); }
+  .raw-link { opacity: 0.7; }
+  details { margin-top: 2rem; color: var(--muted); font-size: 0.9rem; }
+  #status { color: var(--muted); margin-top: 2rem; }
+  footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Spanish Local Holidays Calendar</h1>
+  <p class="lede">
+    Subscribable iCal feeds bundling national, regional and local holidays
+    per city. Pick a city and language below — "Subscribe" opens your
+    calendar app directly; "raw .ics" is the plain URL if you'd rather
+    paste it in yourself.
+  </p>
+
+  <div id="listing"></div>
+  <p id="status">Loading available cities…</p>
+
+  <details>
+    <summary>How subscribing works</summary>
+    <p>
+      These links add a <em>live subscription</em>, not a one-time import —
+      your calendar app re-checks the URL periodically, so you'll see
+      updates automatically. In Google Calendar, use "Other calendars" →
+      "From URL" and paste the raw .ics link. In Apple Calendar, use File →
+      "New Calendar Subscription", or just click "Subscribe" above.
+    </p>
+  </details>
+
+  <footer>
+    Generated from
+    <a href="https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/index.json">output/index.json</a>,
+    rebuilt monthly. See the
+    <a href="https://github.com/cbonnin96/spanish-local-holidays-calendar">source on GitHub</a>
+    for details, or to add a city.
+  </footer>
+</main>
+
+<script>
+  const INDEX_URL = "https://raw.githubusercontent.com/cbonnin96/spanish-local-holidays-calendar/main/output/index.json";
+  const LOCALE_LABELS = { es: "Español", ca: "Català" };
+
+  function toWebcal(url) {
+    return url.replace(/^https?:\/\//, "webcal://");
+  }
+
+  function groupByRegionThenCity(entries) {
+    const regions = new Map();
+    for (const entry of entries) {
+      if (!regions.has(entry.region)) regions.set(entry.region, new Map());
+      const cities = regions.get(entry.region);
+      if (!cities.has(entry.city)) cities.set(entry.city, []);
+      cities.get(entry.city).push(entry);
+    }
+    return regions;
+  }
+
+  function render(entries) {
+    const listing = document.getElementById("listing");
+    const status = document.getElementById("status");
+
+    if (entries.length === 0) {
+      status.textContent = "No cities are published yet.";
+      return;
+    }
+
+    const regions = groupByRegionThenCity(entries);
+    for (const [region, cities] of regions) {
+      const section = document.createElement("section");
+      section.className = "region";
+
+      const heading = document.createElement("h2");
+      heading.textContent = region;
+      section.appendChild(heading);
+
+      for (const [city, cityEntries] of cities) {
+        const row = document.createElement("div");
+        row.className = "city";
+
+        const name = document.createElement("span");
+        name.className = "city-name";
+        name.textContent = city;
+        row.appendChild(name);
+
+        const links = document.createElement("span");
+        links.className = "links";
+        for (const entry of cityEntries) {
+          const label = LOCALE_LABELS[entry.locale] || entry.locale;
+
+          const subscribe = document.createElement("a");
+          subscribe.href = toWebcal(entry.url);
+          subscribe.textContent = `Subscribe (${label})`;
+          links.appendChild(subscribe);
+
+          const raw = document.createElement("a");
+          raw.className = "raw-link";
+          raw.href = entry.url;
+          raw.textContent = "raw .ics";
+          links.appendChild(raw);
+        }
+        row.appendChild(links);
+        section.appendChild(row);
+      }
+
+      listing.appendChild(section);
+    }
+
+    status.remove();
+  }
+
+  fetch(INDEX_URL)
+    .then((response) => {
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return response.json();
+    })
+    .then(render)
+    .catch((error) => {
+      document.getElementById("status").textContent =
+        `Couldn't load the city index (${error.message}). Try the raw feed list directly: ` + INDEX_URL;
+    });
+</script>
+</body>
+</html>
