@@ -90,49 +90,19 @@ data points (one's an HTML scrape, the other's a JSON API).
 
 ```
 spanish-local-holidays-calendar/
-├── Dockerfile
-├── Makefile
-├── requirements.txt
 ├── spanish_local_holidays_calendar/
-│   ├── models.py          # Holiday dataclass (date, name, scope, source_url)
-│   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
-│   ├── slug.py            # slugify() -- region/city display names to path segments
-│   ├── pipeline.py        # CalendarPipeline: validate registries, generate, write the index
-│   ├── __main__.py        # CLI entrypoint: load the registries, hand them to CalendarPipeline
-│   ├── registry/          # JSON-backed config: what to generate
-│   │   ├── cities.py / cities.json              # CityConfig + load_cities()
-│   │   ├── locales.py / locales.json            # LocaleConfig + load_locales()
-│   │   └── region_sources.py / region_sources.json  # load_region_sources()
-│   └── sources/           # how to get the data: the RegionSource protocol + each region's own implementation
-│       ├── base.py                    # RegionSource protocol
-│       ├── illes_balears/             # Balearics/CAIB source: HTML scrape
-│       │   ├── __init__.py
-│       │   └── README.md              # CAIB-specific quirks
-│       └── catalunya/                 # Catalonia source: Generalitat open data API
-│           ├── __init__.py
-│           └── README.md              # Catalunya-specific quirks
-├── tests/                 # mirrors the package structure above
-│   ├── registry/
-│   │   ├── test_cities.py, test_locales.py, test_region_sources.py
-│   ├── sources/
-│   │   ├── fixtures/aao_2026_sample.html      # trimmed, stable copy of the real CA page structure
-│   │   ├── fixtures/aao_2026_sample_es.html   # same, for the ES page
-│   │   ├── test_base.py, test_illes_balears.py, test_catalunya.py
-│   ├── test_slug.py
-│   ├── test_generate_ics.py
-│   ├── test_pipeline.py   # CalendarPipeline's behavior, constructed directly
-│   └── test_main.py       # smoke test: main() wires the registries into a working pipeline
-├── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
-├── docs/
-│   └── index.html              # browsable index, published via GitHub Pages
-└── output/                        # generated artifacts, committed (this is what's served)
-    ├── index.json                  # generated: every live (city, region, locale) + its url
-    ├── illes-balears/
-    │   ├── palma.es.ics            # one file per (city, locale)
-    │   └── palma.ca.ics
-    └── catalunya/
-        ├── barcelona.es.ics
-        └── barcelona.ca.ics
+│   ├── models.py, generate_ics.py, slug.py, pipeline.py, __main__.py
+│   ├── registry/        # JSON-backed config: what to generate (cities, locales, region_sources)
+│   └── sources/         # how to get the data: the RegionSource protocol + one implementation per region
+│       ├── base.py
+│       ├── illes_balears/   # Balearics/CAIB source: HTML scrape (+ its own README)
+│       └── catalunya/       # Catalonia source: Generalitat open-data API (+ its own README)
+├── tests/                  # mirrors the package structure above
+├── docs/index.html         # browsable subscribe page, published via GitHub Pages
+├── output/                 # generated artifacts, committed -- this is what's served
+│   ├── index.json            # every live (city, region, locale) + its url
+│   └── <region-slug>/<city-slug>.<lang>.ics
+└── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
 ```
 
 **Build/run:**

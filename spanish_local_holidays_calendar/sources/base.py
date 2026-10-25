@@ -15,7 +15,7 @@ class RegionSource(Protocol):
     deliberately thin so the pipeline depends only on this shape, not on
     *how* a given region fetches or parses its data.
 
-    A plain module (like `illes_balears.py` today) satisfies this protocol
+    A plain module (like `illes_balears/__init__.py` today) satisfies this protocol
     just as well as a class instance would: Protocol conformance here is
     checked by attribute presence, not by being a particular kind of
     object, so `fetch_holidays` doesn't need to be a bound method.
