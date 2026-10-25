@@ -5,7 +5,7 @@ from datetime import date
 import requests
 from dateutil.easter import easter
 
-from .models import Holiday
+from ..models import Holiday
 
 SUPPORTED_LOCALES = frozenset({"es", "ca"})
 
