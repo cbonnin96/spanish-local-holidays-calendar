@@ -97,7 +97,8 @@ spanish-local-holidays-calendar/
 │   ├── models.py          # Holiday dataclass (date, name, scope, source_url)
 │   ├── generate_ics.py    # builds a .ics Calendar from Holiday objects
 │   ├── slug.py            # slugify() -- region/city display names to path segments
-│   ├── __main__.py        # CLI entrypoint: dispatch cities x locales to their RegionSource
+│   ├── pipeline.py        # CalendarPipeline: validate registries, generate, write the index
+│   ├── __main__.py        # CLI entrypoint: load the registries, hand them to CalendarPipeline
 │   ├── registry/          # JSON-backed config: what to generate
 │   │   ├── cities.py / cities.json              # CityConfig + load_cities()
 │   │   ├── locales.py / locales.json            # LocaleConfig + load_locales()
@@ -119,7 +120,8 @@ spanish-local-holidays-calendar/
 │   │   ├── test_base.py, test_illes_balears.py, test_catalunya.py
 │   ├── test_slug.py
 │   ├── test_generate_ics.py
-│   └── test_main.py
+│   ├── test_pipeline.py   # CalendarPipeline's behavior, constructed directly
+│   └── test_main.py       # smoke test: main() wires the registries into a working pipeline
 ├── .github/workflows/update-calendar.yml   # scheduled regeneration + commit
 ├── docs/
 │   └── index.html              # browsable index, published via GitHub Pages
