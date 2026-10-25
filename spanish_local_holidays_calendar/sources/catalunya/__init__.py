@@ -81,6 +81,37 @@ def _distinct_dates(rows: list[dict]) -> list[date]:
     return sorted({date.fromisoformat(row["data"][:10]) for row in rows})
 
 
+def fetch_regional_holidays(year: int, locale: str) -> list[Holiday] | None:
+    """Fetch Catalunya's regional holidays for a year/locale from the open
+    data portal's regional dataset.
+
+    Returns None if that year isn't published in the dataset yet -- the
+    signal `fetch_holidays` uses to short-circuit before fetching local
+    holidays at all.
+    """
+    rows = _fetch_rows(REGIONAL_DATASET_URL, f"any_calendari='{year}'")
+    dates = _distinct_dates(rows)
+    if not dates:
+        return None
+    return [
+        Holiday(date=d, name=_regional_holiday_name(d, locale), scope="regional", source_url=REGIONAL_DATASET_URL)
+        for d in dates
+    ]
+
+
+def fetch_local_holidays(year: int, municipality: str, locale: str) -> list[Holiday]:
+    """Fetch a Catalan municipality's local holidays for a year/locale from
+    the open data portal's local dataset."""
+    rows = _fetch_rows(
+        LOCAL_DATASET_URL,
+        f"any_calendari='{year}' AND ajuntament_o_nucli_municipal='{municipality}'",
+    )
+    return [
+        Holiday(date=d, name=GENERIC_LOCAL_NAME[locale], scope="local", source_url=LOCAL_DATASET_URL)
+        for d in _distinct_dates(rows)
+    ]
+
+
 def fetch_holidays(year: int, municipality: str = "Barcelona", locale: str = "ca") -> list[Holiday] | None:
     """Fetch and parse all holidays (regional + local) for a Catalan
     municipality, year, and locale ("ca" or "es"), from Catalonia's official
@@ -88,23 +119,8 @@ def fetch_holidays(year: int, municipality: str = "Barcelona", locale: str = "ca
 
     Returns None if that year isn't published in the regional dataset yet.
     """
-    regional_rows = _fetch_rows(REGIONAL_DATASET_URL, f"any_calendari='{year}'")
-    regional_dates = _distinct_dates(regional_rows)
-    if not regional_dates:
+    regional = fetch_regional_holidays(year, locale)
+    if regional is None:
         return None
-
-    local_rows = _fetch_rows(
-        LOCAL_DATASET_URL,
-        f"any_calendari='{year}' AND ajuntament_o_nucli_municipal='{municipality}'",
-    )
-    local_dates = _distinct_dates(local_rows)
-
-    holidays = [
-        Holiday(date=d, name=_regional_holiday_name(d, locale), scope="regional", source_url=REGIONAL_DATASET_URL)
-        for d in regional_dates
-    ]
-    holidays += [
-        Holiday(date=d, name=GENERIC_LOCAL_NAME[locale], scope="local", source_url=LOCAL_DATASET_URL)
-        for d in local_dates
-    ]
+    holidays = regional + fetch_local_holidays(year, municipality, locale)
     return sorted(holidays, key=lambda holiday: holiday.date)

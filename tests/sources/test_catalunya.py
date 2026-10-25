@@ -5,6 +5,8 @@ from spanish_local_holidays_calendar.sources.catalunya import (
     REGIONAL_DATASET_URL,
     _regional_holiday_name,
     fetch_holidays,
+    fetch_local_holidays,
+    fetch_regional_holidays,
 )
 
 # Real 2026 Easter dates: Easter Sunday is 2026-04-05, so Good Friday is
@@ -49,6 +51,52 @@ def _fake_requests_get(regional_rows, local_rows):
         raise AssertionError(f"unexpected URL: {url}")
 
     return fake_get
+
+
+def test_fetch_regional_holidays_dedupes_rows_and_assigns_names(monkeypatch):
+    regional_rows = [
+        {"any_calendari": "2026", "data": "2026-01-01T00:00:00.000"},
+        {"any_calendari": "2026", "data": "2026-01-01T00:00:00.000"},  # duplicate
+        {"any_calendari": "2026", "data": "2026-12-25T00:00:00.000"},
+    ]
+    monkeypatch.setattr(
+        "spanish_local_holidays_calendar.sources.catalunya.requests.get",
+        _fake_requests_get(regional_rows, local_rows=[]),
+    )
+
+    holidays = fetch_regional_holidays(2026, locale="ca")
+
+    assert {h.name for h in holidays} == {"Cap d'Any", "Nadal"}
+    assert all(h.scope == "regional" for h in holidays)
+    assert all(h.source_url == REGIONAL_DATASET_URL for h in holidays)
+
+
+def test_fetch_regional_holidays_returns_none_when_year_not_published(monkeypatch):
+    monkeypatch.setattr(
+        "spanish_local_holidays_calendar.sources.catalunya.requests.get",
+        _fake_requests_get(regional_rows=[], local_rows=[]),
+    )
+
+    assert fetch_regional_holidays(2099, locale="ca") is None
+
+
+def test_fetch_local_holidays_dedupes_rows_and_uses_generic_name(monkeypatch):
+    local_rows = [
+        {"any_calendari": "2026", "data": "2026-05-25T00:00:00.000", "festiu": "Festiu local"},
+        {"any_calendari": "2026", "data": "2026-05-25T00:00:00.000", "festiu": "Festiu local"},  # duplicate
+        {"any_calendari": "2026", "data": "2026-09-24T00:00:00.000", "festiu": "test_junk_value"},
+    ]
+    monkeypatch.setattr(
+        "spanish_local_holidays_calendar.sources.catalunya.requests.get",
+        _fake_requests_get(regional_rows=[], local_rows=local_rows),
+    )
+
+    holidays = fetch_local_holidays(2026, "Barcelona", locale="ca")
+
+    assert {h.date for h in holidays} == {date(2026, 5, 25), date(2026, 9, 24)}
+    assert all(h.name == "Festa local" for h in holidays)  # generic, ignores the junk "festiu" text
+    assert all(h.scope == "local" for h in holidays)
+    assert all(h.source_url == LOCAL_DATASET_URL for h in holidays)
 
 
 def test_fetch_holidays_dedupes_rows_and_assigns_names(monkeypatch):
