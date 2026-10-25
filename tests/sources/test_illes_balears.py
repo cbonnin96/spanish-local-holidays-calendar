@@ -1,7 +1,7 @@
 from datetime import date
 from pathlib import Path
 
-from spanish_local_holidays_calendar.scraper import (
+from spanish_local_holidays_calendar.sources.illes_balears import (
     SUPPORTED_LOCALES,
     fetch_holidays,
     fetch_page,
@@ -98,7 +98,7 @@ def test_parse_split_local_holidays_skips_ambiguous_grouped_sub_localities():
 
 def test_fetch_holidays_resolves_a_sub_locality_by_name(monkeypatch):
     html = FIXTURE.read_text(encoding="utf-8")
-    monkeypatch.setattr("spanish_local_holidays_calendar.scraper.fetch_page", lambda year, locale: html)
+    monkeypatch.setattr("spanish_local_holidays_calendar.sources.illes_balears.fetch_page", lambda year, locale: html)
 
     holidays = fetch_holidays(2026, municipality="Port d'Andratx", locale="ca")
 
@@ -108,7 +108,7 @@ def test_fetch_holidays_resolves_a_sub_locality_by_name(monkeypatch):
 
 def test_fetch_holidays_works_for_a_single_entry_municipality_beyond_palma(monkeypatch):
     html = FIXTURE.read_text(encoding="utf-8")
-    monkeypatch.setattr("spanish_local_holidays_calendar.scraper.fetch_page", lambda year, locale: html)
+    monkeypatch.setattr("spanish_local_holidays_calendar.sources.illes_balears.fetch_page", lambda year, locale: html)
 
     holidays = fetch_holidays(2026, municipality="CAMPOS", locale="ca")
 
@@ -169,7 +169,7 @@ def test_fetch_page_builds_locale_specific_url(monkeypatch):
         requested_urls.append(url)
         return FakeResponse()
 
-    monkeypatch.setattr("spanish_local_holidays_calendar.scraper.requests.get", fake_get)
+    monkeypatch.setattr("spanish_local_holidays_calendar.sources.illes_balears.requests.get", fake_get)
 
     fetch_page(2026, locale="es")
     fetch_page(2026, locale="ca")
