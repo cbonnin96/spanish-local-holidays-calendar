@@ -7,9 +7,7 @@ for a given city.
 ## Subscribe
 
 Browse available cities and languages, filter by city or autonomous
-community, and subscribe directly: **[cbonnin96.github.io/spanish-local-holidays-calendar](https://cbonnin96.github.io/spanish-local-holidays-calendar/)**
-(once GitHub Pages is enabled for this repo — Settings → Pages → branch
-`main`, folder `/docs`). Each language has a "Subscribe" link
+community, and subscribe directly: **[cbonnin96.github.io/spanish-local-holidays-calendar](https://cbonnin96.github.io/spanish-local-holidays-calendar/)**. Each language has a "Subscribe" link
 (`webcal://`, opens your calendar app directly) and a plain `.ics` URL if
 you'd rather add it manually — see that page for exact steps.
 
